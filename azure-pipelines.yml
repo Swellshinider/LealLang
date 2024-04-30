@@ -8,15 +8,5 @@ variables:
   buildConfiguration: 'Release'
 
 steps:
-- task: UseDotNet@2
-  displayName: 'Install .NET Core SDK'
-  inputs:
-    version: 8.x
-    performMultiLevelLookup: true
-    includePreviewVersions: true
-
-- task: DotNetCoreCLI@2
-  inputs:
-    command: 'build'
-    arguments: '--configuration $(buildConfiguration) --project ./code/LealLang/LealLang.csproj'
+- script: dotnet build --configuration $(buildConfiguration) --project ./code/LealLang/LealLang.csproj
   displayName: 'dotnet build $(buildConfiguration)'
