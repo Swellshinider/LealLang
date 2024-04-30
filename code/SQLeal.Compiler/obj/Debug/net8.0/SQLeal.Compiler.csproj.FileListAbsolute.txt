@@ -1,0 +1,11 @@
+C:\Projects\SQLeal\code\SQLeal.Compiler\bin\Debug\net8.0\SQLeal.Compiler.deps.json
+C:\Projects\SQLeal\code\SQLeal.Compiler\bin\Debug\net8.0\SQLeal.Compiler.dll
+C:\Projects\SQLeal\code\SQLeal.Compiler\bin\Debug\net8.0\SQLeal.Compiler.pdb
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.GeneratedMSBuildEditorConfig.editorconfig
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.AssemblyInfoInputs.cache
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.AssemblyInfo.cs
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.csproj.CoreCompileInputs.cache
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.dll
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\refint\SQLeal.Compiler.dll
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\SQLeal.Compiler.pdb
+C:\Projects\SQLeal\code\SQLeal.Compiler\obj\Debug\net8.0\ref\SQLeal.Compiler.dll
