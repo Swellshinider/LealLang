@@ -15,7 +15,6 @@ steps:
     performMultiLevelLookup: true
     includePreviewVersions: true
 
-steps:
 - task: DotNetCoreCLI@2
   inputs:
     command: 'restore'
