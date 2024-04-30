@@ -1,12 +1,7 @@
 @echo off
+cls
 echo.
-echo Build:
-echo.
-
-dotnet build
-
-echo.
-echo Execution Result:
+echo LealLang. exec:
 echo.
 
-dotnet run --project .\SQLeal\
+dotnet run --project .\LealLang\

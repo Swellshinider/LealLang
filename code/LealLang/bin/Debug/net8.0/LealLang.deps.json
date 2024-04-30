@@ -1,0 +1,36 @@
+{
+  "runtimeTarget": {
+    "name": ".NETCoreApp,Version=v8.0",
+    "signature": ""
+  },
+  "compilationOptions": {},
+  "targets": {
+    ".NETCoreApp,Version=v8.0": {
+      "LealLang/1.0.0": {
+        "dependencies": {
+          "LealLang.Compiler": "1.0.0"
+        },
+        "runtime": {
+          "LealLang.dll": {}
+        }
+      },
+      "LealLang.Compiler/1.0.0": {
+        "runtime": {
+          "LealLang.Compiler.dll": {}
+        }
+      }
+    }
+  },
+  "libraries": {
+    "LealLang/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    },
+    "LealLang.Compiler/1.0.0": {
+      "type": "project",
+      "serviceable": false,
+      "sha512": ""
+    }
+  }
+}
