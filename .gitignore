@@ -1,1 +1,6 @@
-.vs
+*.cache
+*.dll
+*.exe
+*.pdb
+*\obj*
+*\bin*

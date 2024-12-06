@@ -1,1 +1,1 @@
-dotnet run --project .\LL\
+dotnet run --project .\LL\ .\program.ll
