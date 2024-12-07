@@ -1,4 +1,6 @@
-﻿namespace LL;
+﻿using LealLang.Core.Analyzer;
+
+namespace LL;
 
 public static class Program
 {
@@ -12,7 +14,10 @@ public static class Program
 		
 		var lines = ReadFile(args[0]).ToList();
 		var fileContent = string.Join("", lines);
-		Console.WriteLine(fileContent);
+		var tokens = Tokenizer.Tokenize(fileContent);
+		
+		foreach (var token in tokens)
+			Console.WriteLine(token);
 	}
 	
 	private static IEnumerable<string> ReadFile(string fileName) 
