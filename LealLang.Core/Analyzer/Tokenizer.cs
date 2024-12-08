@@ -1,3 +1,5 @@
+using LealLang.Core.Syntax;
+
 namespace LealLang.Core.Analyzer;
 
 public sealed class Tokenizer
@@ -14,23 +16,27 @@ public sealed class Tokenizer
 	private char Current => _position < _text.Length ? _text[_position] : '\0';
 	private char Next => _position + 1 < _text.Length ? _text[_position + 1] : '\0';
 
-	private List<Token> Tokenize()
+	private List<SyntaxToken> Tokenize()
 	{
-		var tokens = new List<Token>();
-		
-		Token token;
-		
-		do 
+		var tokens = new List<SyntaxToken>();
+
+		SyntaxToken token;
+
+		do
 		{
 			token = NextToken();
-			tokens.Add(token);
+
+			if (token.Kind != SyntaxKind.WhiteSpaceToken && 
+				token.Kind != SyntaxKind.BadToken && 
+				token.Kind != SyntaxKind.EndOfFileToken)
+				tokens.Add(token);
 		}
-		while (token.Type != TokenType.EndOfFileToken);
-		
+		while (token.Kind != SyntaxKind.EndOfFileToken);
+
 		return tokens;
 	}
 
-	private Token NextToken()
+	private SyntaxToken NextToken()
 	{
 		var start = _position;
 
@@ -39,7 +45,7 @@ public sealed class Tokenizer
 			while (char.IsWhiteSpace(Current))
 				_position++;
 
-			return new Token(TokenType.WhiteSpaceToken, _text.Substring(start, _position - start), start, _position - start, null);
+			return new SyntaxToken(SyntaxKind.WhiteSpaceToken, _position, _text.Substring(start, _position - start), null);
 		}
 
 		if (char.IsDigit(Current))
@@ -52,31 +58,21 @@ public sealed class Tokenizer
 			if (!int.TryParse(text, out var value))
 				throw new Exception($"Invalid number: {text}");
 
-			return new Token(TokenType.NumberToken, text, start, _position - start, value);
+			return new SyntaxToken(SyntaxKind.NumberToken, _position, text, value);
 		}
 
-		switch (Current)
-		{
-			case '+':
-				_position++;
-				return new Token(TokenType.PlusToken, "+", start, 1, null);
-			case '-':
-				_position++;
-				return new Token(TokenType.MinusToken, "-", start, 1, null);
-			case '*':
-				_position++;
-				return new Token(TokenType.AsteriskToken, "*", start, 1, null);
-			case '/':
-				_position++;
-				return new Token(TokenType.SlashToken, "/", start, 1, null);
-			case '\0':
-				return new Token(TokenType.EndOfFileToken, "\0", start, 0, null);
-			default:
-				throw new Exception($"Invalid character: {Current}");
-		}
-	}
+        return Current switch
+        {
+            '+' => new SyntaxToken(SyntaxKind.PlusToken, _position++, "+"),
+            '-' => new SyntaxToken(SyntaxKind.MinusToken, _position++, "-"),
+            '*' => new SyntaxToken(SyntaxKind.StarToken, _position++, "*"),
+            '/' => new SyntaxToken(SyntaxKind.SlashToken, _position++, "/"),
+            '\0' => new SyntaxToken(SyntaxKind.EndOfFileToken, _position, "\0"),
+            _ => new SyntaxToken(SyntaxKind.BadToken, _position++, _text.Substring(start, 1)),// TODO: Error handling
+        };
+    }
 
-	public static List<Token> Tokenize(string text)
+	public static List<SyntaxToken> Tokenize(string text)
 	{
 		var tokenizer = new Tokenizer(text);
 		return tokenizer.Tokenize();

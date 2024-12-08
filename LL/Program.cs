@@ -15,9 +15,10 @@ public static class Program
 		var lines = ReadFile(args[0]).ToList();
 		var fileContent = string.Join("", lines);
 		var tokens = Tokenizer.Tokenize(fileContent);
+		var parser = new Parser(tokens);
+		var expression = parser.Parse();
 		
-		foreach (var token in tokens)
-			Console.WriteLine(token);
+		Console.WriteLine(expression);
 	}
 	
 	private static IEnumerable<string> ReadFile(string fileName) 
