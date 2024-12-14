@@ -23,18 +23,9 @@ public static class Program
 				continue;
 			}
 
-			var lexer = new Lexer(input);
-			SyntaxToken token;
-			
-			do 
-			{
-				token = lexer.Lex();
-				
-				if (token.Kind != SyntaxKind.WhitespaceToken && 
-					token.Kind != SyntaxKind.BadToken && 
-					token.Kind != SyntaxKind.EndOfFileToken)
-					Console.WriteLine($"{token.Kind}: '{token.Text}'");
-			} while (token.Kind != SyntaxKind.EndOfFileToken);
-		}
+			var parser = new Parser(input);
+			var syntaxTree = parser.Parse();
+			syntaxTree.WriteTo(Console.Out);
+		}	
 	}
 }

@@ -12,5 +12,8 @@ public enum SyntaxKind
 	StarToken,
 	SlashToken,
     OpenParenthesisToken,
-    CloseParenthesisToken
+    CloseParenthesisToken,
+    NumberExpression,
+    BinaryExpression,
+    UnaryExpression
 }
