@@ -47,9 +47,27 @@ public sealed class Parser
 		return new(kind, Current.Position, null, null);
 	}
 
-	public ExpressionSyntax Parse()
+	public ExpressionSyntax Parse() => ParseExpression();
+
+	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
-		return ParseBinaryExpression();
+		SyntaxKind.NumberExpression => ParseNumberExpression(),
+		_ => ParseBinaryExpression(),
+	};
+
+	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
+	{
+		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
+		_ => ParseNumberExpression()
+	};
+
+	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
+	{
+		var openParenthesisToken = Match(SyntaxKind.OpenParenthesisToken);
+		var expression = ParseExpression();
+		var closeParenthesisToken = Match(SyntaxKind.CloseParenthesisToken);
+
+		return new ParenthesizedExpressionSyntax(openParenthesisToken, expression, closeParenthesisToken);
 	}
 
 	private ExpressionSyntax ParseBinaryExpression(int parentPrecedence = 0)
@@ -64,7 +82,7 @@ public sealed class Parser
 			left = new UnaryExpressionSyntax(operatorToken, operand);
 		}
 		else
-			left = ParseNumberExpression();
+			left = ParsePrimaryExpression();
 
 		while (true)
 		{
