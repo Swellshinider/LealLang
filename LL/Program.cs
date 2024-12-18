@@ -7,6 +7,7 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		Console.Title = "LealLang: Interactive Console";
+		var showTree = false;
 		while (true)
 		{
 			Console.ForegroundColor = ConsoleColor.Cyan;
@@ -22,19 +23,23 @@ public static class Program
 				Console.Clear();
 				continue;
 			}
-
-			var lexer = new Lexer(input);
-			SyntaxToken token;
 			
-			do 
+			if (input == "#showTree")
 			{
-				token = lexer.Lex();
+				showTree = !showTree;
+				Console.WriteLine($"{(showTree ? "showing" : "hiding")} parsed trees");
+				continue;
+			}
+
+			var parser = new Parser(input);
+			var syntaxTree = parser.Parse();
+			
+			if (showTree)
+				syntaxTree.WriteTo(Console.Out);
 				
-				if (token.Kind != SyntaxKind.WhitespaceToken && 
-					token.Kind != SyntaxKind.BadToken && 
-					token.Kind != SyntaxKind.EndOfFileToken)
-					Console.WriteLine($"{token.Kind}: '{token.Text}'");
-			} while (token.Kind != SyntaxKind.EndOfFileToken);
-		}
+			var evaluator = new Evaluator(syntaxTree);
+			var result = evaluator.Evaluate();
+			Console.WriteLine(result);
+		}	
 	}
 }

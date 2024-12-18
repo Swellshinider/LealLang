@@ -11,6 +11,12 @@ public enum SyntaxKind
 	MinusToken,
 	StarToken,
 	SlashToken,
-    OpenParenthesisToken,
-    CloseParenthesisToken
+	OpenParenthesisToken,
+	CloseParenthesisToken,
+	
+	
+	NumberExpression,
+	BinaryExpression,
+	UnaryExpression,
+	ParenthesizedExpression
 }
