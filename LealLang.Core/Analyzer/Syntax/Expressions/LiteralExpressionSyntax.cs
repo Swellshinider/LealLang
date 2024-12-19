@@ -1,8 +1,8 @@
 namespace LealLang.Core.Analyzer.Syntax.Expressions;
 
-public sealed class NumberExpressionSyntax : ExpressionSyntax
+public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
-	public NumberExpressionSyntax(SyntaxToken numberToken)
+	public LiteralExpressionSyntax(SyntaxToken numberToken)
 	{
 		NumberToken = numberToken;
 	}

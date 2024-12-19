@@ -8,9 +8,9 @@ public sealed class Parser
 	private readonly List<SyntaxToken> _tokens = [];
 	private int _position = 0;
 
-	public Parser(string text)
+	public Parser(string text, List<string> diagnostics)
 	{
-		var lexer = new Lexer(text);
+		var lexer = new Lexer(text, diagnostics);
 		SyntaxToken token;
 
 		do
@@ -21,8 +21,11 @@ public sealed class Parser
 				_tokens.Add(token);
 
 		} while (token.Kind != SyntaxKind.EndOfFileToken);
+		Diagnostics = lexer.Diagnostics;
 	}
 
+	public List<string> Diagnostics { get; }
+	
 	private SyntaxToken Current => Peek(0);
 
 	private SyntaxToken Peek(int offset)
@@ -43,7 +46,7 @@ public sealed class Parser
 		if (Current.Kind == kind)
 			return NextToken();
 
-		// TODO: Error handling
+		Diagnostics.Add($"Invalid token '{Current.Kind}' at '{Current.Position}', expected: '{kind}'");
 		return new(kind, Current.Position, null, null);
 	}
 
@@ -102,6 +105,6 @@ public sealed class Parser
 	private ExpressionSyntax ParseNumberExpression()
 	{
 		var token = Match(SyntaxKind.NumberToken);
-		return new NumberExpressionSyntax(token);
+		return new LiteralExpressionSyntax(token);
 	}
 }
