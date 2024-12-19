@@ -17,13 +17,13 @@ public static class Program
 
 			if (input == "#exit")
 				break;
-				
+
 			if (input == "#cls")
 			{
 				Console.Clear();
 				continue;
 			}
-			
+
 			if (input == "#showTree")
 			{
 				showTree = !showTree;
@@ -31,15 +31,25 @@ public static class Program
 				continue;
 			}
 
-			var parser = new Parser(input);
+			var diagnostics = new List<string>();
+			var parser = new Parser(input, diagnostics);
+			diagnostics = parser.Diagnostics;
 			var syntaxTree = parser.Parse();
-			
+
 			if (showTree)
 				syntaxTree.WriteTo(Console.Out);
-				
+
+			if (diagnostics.Count > 0)
+			{
+				Console.ForegroundColor = ConsoleColor.Red;
+				diagnostics.ForEach(Console.WriteLine);
+				Console.ResetColor();
+				continue;
+			}
+
 			var evaluator = new Evaluator(syntaxTree);
 			var result = evaluator.Evaluate();
 			Console.WriteLine(result);
-		}	
+		}
 	}
 }

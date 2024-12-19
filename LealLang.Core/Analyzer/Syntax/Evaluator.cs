@@ -18,7 +18,7 @@ public sealed class Evaluator
 
 	private object EvaluateExpression(ExpressionSyntax expression) => expression.Kind switch
 	{
-		SyntaxKind.NumberExpression => ParseNumberExpression((NumberExpressionSyntax)expression),
+		SyntaxKind.NumberExpression => ParseNumberExpression((LiteralExpressionSyntax)expression),
 		SyntaxKind.BinaryExpression => ParseBinaryExpression((BinaryExpressionSyntax)expression),
 		SyntaxKind.UnaryExpression => ParseUnaryExpression((UnaryExpressionSyntax)expression),
 		SyntaxKind.ParenthesizedExpression => ParseParenthesizedExpression((ParenthesizedExpressionSyntax)expression),
@@ -30,9 +30,10 @@ public sealed class Evaluator
 		return EvaluateExpression(expression.Expression);
 	}
 
-	private static int ParseNumberExpression(NumberExpressionSyntax numberExpression)
+	private static int ParseNumberExpression(LiteralExpressionSyntax numberExpression)
 	{
 		var value = numberExpression.NumberToken.Value;
+		
 		if (value!.GetType() != typeof(int))
 			throw new Exception("Impossible");
 
