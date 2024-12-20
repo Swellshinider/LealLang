@@ -38,10 +38,7 @@ internal sealed class Binder
 	}
 
 	private static BoundLiteralExpression BindLiteralExpression(LiteralExpressionSyntax literalSyntax)
-	{
-		var value = literalSyntax.LiteralToken.Value as int? ?? 0;
-		return new BoundLiteralExpression(value);
-	}
+		=> new(literalSyntax.Value);
 
 	private static BoundUnaryOperatorKind? BindUnaryOperatorKind(SyntaxKind kind, Type operantType)
 	{

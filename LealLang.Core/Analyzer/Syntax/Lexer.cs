@@ -44,7 +44,7 @@ public sealed class Lexer
 			if (!int.TryParse(text, out var value))
 				Diagnostics.Add($"The number '{text}' is not a valid Int32.");
 
-			return new(SyntaxKind.NumberToken, start, text, value);
+			return new(SyntaxKind.LiteralToken, start, text, value);
 		}
 
 		if (char.IsWhiteSpace(Current))
@@ -53,6 +53,16 @@ public sealed class Lexer
 				Advance();
 
 			return new(SyntaxKind.WhitespaceToken, start, GetText(start));
+		}
+		
+		if (char.IsLetter(Current))
+		{
+			while (char.IsLetterOrDigit(Current))
+				Advance();
+				
+			var text = GetText(start);
+			var literalKind = text.GetKeywordKind();
+			return new(literalKind, start, text);
 		}
 
 		var kind = Current switch

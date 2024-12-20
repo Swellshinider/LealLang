@@ -22,4 +22,11 @@ public static class SyntaxDefinitions
 		
 		_ => 0,
 	};
+	
+	public static SyntaxKind GetKeywordKind(this string text) => text switch 
+	{
+		"true" => SyntaxKind.TrueKeyword,
+		"false" => SyntaxKind.FalseKeyword,
+		_ => SyntaxKind.IdentifierToken	
+	};
 }

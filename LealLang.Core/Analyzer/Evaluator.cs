@@ -28,15 +28,8 @@ public sealed class Evaluator
 		_ => throw new NotImplementedException()
 	};
 	
-	private static int EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
-	{
-		var value = literalExpression.Value;
-		
-		if (value!.GetType() != typeof(int))
-			throw new Exception("Impossible");
-
-		return (int)value!;
-	}
+	private static object EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
+		=> literalExpression.Value;
 
 	private int EvaluateBinaryExpression(BoundBinaryExpression binaryExpression)
 	{
@@ -49,7 +42,7 @@ public sealed class Evaluator
 			BoundBinaryOperatorKind.Subtraction => (int)left - (int)right,
 			BoundBinaryOperatorKind.Multiplication => (int)left * (int)right,
 			BoundBinaryOperatorKind.Division => (int)left / (int)right,
-			_ => throw new NotImplementedException()
+			_ => -1
 		};
 	}
 
@@ -59,7 +52,7 @@ public sealed class Evaluator
 		{
 			BoundUnaryOperatorKind.Negation => -(int)EvaluateExpression(unaryExpression.Operand),
 			BoundUnaryOperatorKind.Identity => (int)EvaluateExpression(unaryExpression.Operand),
-			_ => throw new NotImplementedException()
+			_ => -1
 		};
 	}
 }

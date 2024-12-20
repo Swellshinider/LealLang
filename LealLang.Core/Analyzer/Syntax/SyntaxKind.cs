@@ -3,9 +3,10 @@ namespace LealLang.Core.Analyzer.Syntax;
 public enum SyntaxKind
 {
 	#region [ Tokens ]
-	NumberToken,
+	LiteralToken,
 	EndOfFileToken,
 	WhitespaceToken,
+	IdentifierToken,
 	BadToken,
 	PlusToken,
 	MinusToken,
@@ -13,6 +14,11 @@ public enum SyntaxKind
 	SlashToken,
 	OpenParenthesisToken,
 	CloseParenthesisToken,
+	#endregion
+	
+	#region [ Keywords ]
+    TrueKeyword,
+    FalseKeyword,
 	#endregion
 	
 	#region [ Expressions ]
