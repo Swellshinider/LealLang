@@ -1,7 +1,5 @@
 using LealLang.Core.Analyzer.Binding;
 using LealLang.Core.Analyzer.Binding.Expressions;
-using LealLang.Core.Analyzer.Syntax;
-using LealLang.Core.Analyzer.Syntax.Expressions;
 
 namespace LealLang.Core.Analyzer;
 
@@ -9,10 +7,9 @@ public sealed class Evaluator
 {
 	private readonly BoundExpression _expression;
 
-	public Evaluator(ExpressionSyntax syntax)
+	public Evaluator(BoundExpression expression)
 	{
-		var binder = new Binder();
-		_expression = binder.BindExpression(syntax);
+		_expression = expression;
 	}
 
 	public object? Evaluate()
@@ -25,13 +22,13 @@ public sealed class Evaluator
 		BoundNodeKind.LiteralExpression => EvaluateLiteralExpression((BoundLiteralExpression)expression),
 		BoundNodeKind.BinaryExpression => EvaluateBinaryExpression((BoundBinaryExpression)expression),
 		BoundNodeKind.UnaryExpression => EvaluateUnaryExpression((BoundUnaryExpression)expression),
-		_ => throw new NotImplementedException()
+		_ => -1
 	};
 	
 	private static object EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
 		=> literalExpression.Value;
 
-	private int EvaluateBinaryExpression(BoundBinaryExpression binaryExpression)
+	private object EvaluateBinaryExpression(BoundBinaryExpression binaryExpression)
 	{
 		var left = EvaluateExpression(binaryExpression.Left);
 		var right = EvaluateExpression(binaryExpression.Right);
@@ -42,16 +39,19 @@ public sealed class Evaluator
 			BoundBinaryOperatorKind.Subtraction => (int)left - (int)right,
 			BoundBinaryOperatorKind.Multiplication => (int)left * (int)right,
 			BoundBinaryOperatorKind.Division => (int)left / (int)right,
+			BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
+			BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
 			_ => -1
 		};
 	}
 
-	private int EvaluateUnaryExpression(BoundUnaryExpression unaryExpression)
+	private object EvaluateUnaryExpression(BoundUnaryExpression unaryExpression)
 	{
 		return unaryExpression.OperatorKind switch
 		{
 			BoundUnaryOperatorKind.Negation => -(int)EvaluateExpression(unaryExpression.Operand),
 			BoundUnaryOperatorKind.Identity => (int)EvaluateExpression(unaryExpression.Operand),
+			BoundUnaryOperatorKind.LogicalNegation => !(bool)EvaluateExpression(unaryExpression.Operand),
 			_ => -1
 		};
 	}

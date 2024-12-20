@@ -2,10 +2,23 @@ namespace LealLang.Core.Analyzer.Syntax;
 
 public static class SyntaxDefinitions 
 {
+	public static int GetAdvanceQuantity(this SyntaxKind kind)
+	{
+		return kind switch
+		{
+			SyntaxKind.EqualsEqualsToken or
+			SyntaxKind.ExclamationEqualsToken or
+			SyntaxKind.AmpersandAmpersandToken or
+			SyntaxKind.PipePipeToken => 2,
+			_ => 1
+		};
+	}
+	
 	public static int GetUnaryPrecedence(this SyntaxKind kind) => kind switch 
 	{
 		SyntaxKind.MinusToken or
-		SyntaxKind.PlusToken => 4,
+		SyntaxKind.PlusToken or
+		SyntaxKind.ExclamationToken => 4,
 		
 		_ => 0,	
 	};
@@ -14,8 +27,11 @@ public static class SyntaxDefinitions
 	{
 		SyntaxKind.OpenParenthesisToken => 3,
 		
-		SyntaxKind.SlashToken => 2,
-		SyntaxKind.StarToken => 2,
+		SyntaxKind.SlashToken or
+		SyntaxKind.StarToken or 
+		SyntaxKind.AmpersandAmpersandToken or 
+		SyntaxKind.EqualsEqualsToken or 
+		SyntaxKind.PipePipeToken => 2,
 		
 		SyntaxKind.MinusToken or
 		SyntaxKind.PlusToken => 1,

@@ -1,6 +1,6 @@
 namespace LealLang.Core.Analyzer.Binding;
 
-internal enum BoundNodeKind
+public enum BoundNodeKind
 {
     LiteralExpression,
 	UnaryExpression,

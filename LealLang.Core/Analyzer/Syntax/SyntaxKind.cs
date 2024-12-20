@@ -12,13 +12,21 @@ public enum SyntaxKind
 	MinusToken,
 	StarToken,
 	SlashToken,
+	EqualsToken,
+	EqualsEqualsToken,
+	ExclamationToken,
+	ExclamationEqualsToken,
+	PipeToken,
+	PipePipeToken,
+	AmpersandToken,
+	AmpersandAmpersandToken,
 	OpenParenthesisToken,
 	CloseParenthesisToken,
 	#endregion
 	
 	#region [ Keywords ]
-    TrueKeyword,
-    FalseKeyword,
+	TrueKeyword,
+	FalseKeyword,
 	#endregion
 	
 	#region [ Expressions ]
