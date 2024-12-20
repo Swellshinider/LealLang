@@ -1,4 +1,5 @@
-﻿using LealLang.Core.Analyzer.Syntax;
+﻿using LealLang.Core.Analyzer;
+using LealLang.Core.Analyzer.Syntax;
 
 namespace LL;
 

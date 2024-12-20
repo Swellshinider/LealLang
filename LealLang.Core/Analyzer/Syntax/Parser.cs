@@ -54,7 +54,7 @@ public sealed class Parser
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
-		SyntaxKind.NumberExpression => ParseNumberExpression(),
+		SyntaxKind.LiteralExpression => ParseNumberExpression(),
 		_ => ParseBinaryExpression(),
 	};
 
@@ -90,6 +90,7 @@ public sealed class Parser
 		while (true)
 		{
 			var precedence = Current.Kind.GetBinaryPrecedence();
+			
 			if (precedence == 0 || precedence <= parentPrecedence)
 				break;
 
@@ -98,7 +99,7 @@ public sealed class Parser
 
 			left = new BinaryExpressionSyntax(left, operatorToken, right);
 		}
-
+		
 		return left;
 	}
 

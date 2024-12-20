@@ -4,10 +4,10 @@ public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
 	public LiteralExpressionSyntax(SyntaxToken numberToken)
 	{
-		NumberToken = numberToken;
+		LiteralToken = numberToken;
 	}
 	
-	public SyntaxToken NumberToken { get; }
+	public SyntaxToken LiteralToken { get; }
 	
-	public override SyntaxKind Kind => SyntaxKind.NumberExpression;
+	public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
 }
