@@ -6,7 +6,7 @@ namespace LealLang.Core.Analyzer.Binding;
 
 public sealed class Binder
 {
-	private readonly List<string> _diagnostics = new();
+	private readonly List<string> _diagnostics = [];
 
 	public List<string> Diagnostics => _diagnostics;
 
@@ -38,9 +38,6 @@ public sealed class Binder
 		return new BoundBinaryExpression(leftExpression, binaryOperator, rightExpression);
 	}
 
-	private static BoundLiteralExpression BindLiteralExpression(LiteralExpressionSyntax literalSyntax)
-		=> new(literalSyntax.Value);
-
 	private BoundUnaryOperatorKind? BindUnaryOperatorKind(SyntaxKind kind, Type operantType)
 	{
 		if (operantType == typeof(int))
@@ -48,14 +45,14 @@ public sealed class Binder
 			{
 				SyntaxKind.PlusToken => BoundUnaryOperatorKind.Identity,
 				SyntaxKind.MinusToken => BoundUnaryOperatorKind.Negation,
-				_ => AddErrorAndReturnDefault<BoundUnaryOperatorKind>($"Invalid unary operator <{kind}>")
+				_ => AddErrorAndReturnDefault<BoundUnaryOperatorKind>($"Invalid unary operator <{kind}> for type <{operantType}>")
 			};
 		else
 		{
 			return kind switch
 			{
 				SyntaxKind.ExclamationToken => BoundUnaryOperatorKind.LogicalNegation,
-				_ => AddErrorAndReturnDefault<BoundUnaryOperatorKind>($"Invalid unary operator <{kind}>")
+				_ => AddErrorAndReturnDefault<BoundUnaryOperatorKind>($"Invalid unary operator <{kind}> for type <{operantType}>")
 			};
 		}
 	}
@@ -70,7 +67,7 @@ public sealed class Binder
 				SyntaxKind.MinusToken => BoundBinaryOperatorKind.Subtraction,
 				SyntaxKind.StarToken => BoundBinaryOperatorKind.Multiplication,
 				SyntaxKind.SlashToken => BoundBinaryOperatorKind.Division,
-				_ => AddErrorAndReturnDefault<BoundBinaryOperatorKind>($"Invalid binary operator <{kind}>")
+				_ => AddErrorAndReturnDefault<BoundBinaryOperatorKind>($"Invalid binary operator <{kind}> for type <{leftType}> and <{rightType}>")
 			};
 		}
 		else if (leftType == typeof(bool) && rightType == typeof(bool)) 
@@ -79,12 +76,15 @@ public sealed class Binder
 			{
 				SyntaxKind.AmpersandAmpersandToken => BoundBinaryOperatorKind.LogicalAnd,
 				SyntaxKind.PipePipeToken => BoundBinaryOperatorKind.LogicalOr,
-				_ => AddErrorAndReturnDefault<BoundBinaryOperatorKind>($"Invalid binary operator <{kind}>")
+				_ => AddErrorAndReturnDefault<BoundBinaryOperatorKind>($"Invalid binary operator <{kind}> for type <{leftType}> and <{rightType}>")
 			};
 		}
 		
 		return AddErrorAndReturnDefault<BoundBinaryOperatorKind>($"Unable to cast object of type '{leftType}' to type '<{rightType}>'");
 	}
+
+	private static BoundLiteralExpression BindLiteralExpression(LiteralExpressionSyntax literalSyntax)
+		=> new(literalSyntax.Value);
 
 	private T? AddErrorAndReturnDefault<T>(string message)
 	{
