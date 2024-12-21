@@ -41,6 +41,8 @@ public sealed class Evaluator
 			BoundBinaryOperatorKind.Division => (int)left / (int)right,
 			BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
 			BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
+			BoundBinaryOperatorKind.LogicalEquality => Equals(left, right),
+			BoundBinaryOperatorKind.LogicalInequality => !Equals(left, right),
 			_ => -1
 		};
 	}

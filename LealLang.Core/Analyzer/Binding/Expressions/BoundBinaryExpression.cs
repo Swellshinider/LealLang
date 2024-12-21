@@ -13,6 +13,6 @@ internal sealed class BoundBinaryExpression : BoundExpression
 	public BoundBinaryOperator BinaryOperator { get; }
 	public BoundExpression Right { get; }
 
-	public override Type Type => Left.Type;
+	public override Type Type => BinaryOperator.ResultType;
 	public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;
 }

@@ -32,7 +32,7 @@ public sealed class Binder
 		
 		if (unaryOperator == null) 
 		{
-			Diagnostics.Add($"Cannot execute unary operation '{unarySyntax.OperatorToken.Text}' for type <{boundOperand.Type}>");
+			Diagnostics.Add($"Unary operator '{unarySyntax.OperatorToken.Text}' is not defined for type <{boundOperand.Type}>");
 			return boundOperand;
 		}
 
@@ -47,7 +47,7 @@ public sealed class Binder
 			
 		if (binaryOperator == null) 
 		{
-			Diagnostics.Add($"Cannot execute binary operation '{binarySyntax.OperatorToken.Text}' between types <{leftExpression.Type}> and <{rightExpression.Type}>");
+			Diagnostics.Add($"Binary operator '{binarySyntax.OperatorToken.Text}' is not defined for types <{leftExpression.Type}> and <{rightExpression.Type}>");
 			return leftExpression;
 		}
 

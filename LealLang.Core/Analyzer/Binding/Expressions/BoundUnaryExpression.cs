@@ -11,6 +11,6 @@ internal sealed class BoundUnaryExpression : BoundExpression
 	public BoundUnaryOperator UnaryOperator { get; }
 	public BoundExpression Operand { get; }
 	
-	public override Type Type => Operand.Type;
+	public override Type Type => UnaryOperator.ResultType;
 	public override BoundNodeKind Kind => BoundNodeKind.UnaryExpression;
 }

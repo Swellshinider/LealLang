@@ -22,7 +22,7 @@ internal sealed class BoundUnaryOperator
 
 	public static BoundUnaryOperator[] Operators =
 	[
-		new(SyntaxKind.ExclamationToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool)),
+		new(SyntaxKind.NotToken, BoundUnaryOperatorKind.LogicalNegation, typeof(bool)),
 		new(SyntaxKind.PlusToken, BoundUnaryOperatorKind.Identity, typeof(int)),
 		new(SyntaxKind.MinusToken, BoundUnaryOperatorKind.Negation, typeof(int)),
 	];
