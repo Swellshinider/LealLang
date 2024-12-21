@@ -15,7 +15,9 @@ public sealed class Lexer
 
 	public List<string> Diagnostics { get; }
 
-	private char Current => _position >= _text.Length ? '\0' : _text[_position];
+	private char Current => Peek(0);
+
+	private char LookNext => Peek(1);
 
 	private char Peek(int offset)
 	{
@@ -44,7 +46,7 @@ public sealed class Lexer
 			if (!int.TryParse(text, out var value))
 				Diagnostics.Add($"The number '{text}' is not a valid Int32.");
 
-			return new(SyntaxKind.NumberToken, start, text, value);
+			return new(SyntaxKind.LiteralToken, start, text, value);
 		}
 
 		if (char.IsWhiteSpace(Current))
@@ -55,22 +57,46 @@ public sealed class Lexer
 			return new(SyntaxKind.WhitespaceToken, start, GetText(start));
 		}
 
+		if (char.IsLetter(Current))
+		{
+			while (char.IsLetterOrDigit(Current))
+				Advance();
+
+			var text = GetText(start);
+			var literalKind = text.GetKeywordKind();
+			return new(literalKind, start, text);
+		}
+
+		var kind = ReadIsolatedTokens();
+
+		if (kind == SyntaxKind.BadToken)
+			Diagnostics.Add($"'{GetText(start)}' is not a valid token.");
+
+		return new(kind, start, GetText(start));
+	}
+
+	private SyntaxKind ReadIsolatedTokens()
+	{
 		var kind = Current switch
 		{
 			'+' => SyntaxKind.PlusToken,
 			'-' => SyntaxKind.MinusToken,
 			'*' => SyntaxKind.StarToken,
 			'/' => SyntaxKind.SlashToken,
+			'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
+			'=' => SyntaxKind.EqualsToken,
+			'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
+			'!' => SyntaxKind.NotToken,
+			'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
+			'|' => SyntaxKind.PipeToken,
+			'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
+			'&' => SyntaxKind.AmpersandToken,
 			'(' => SyntaxKind.OpenParenthesisToken,
 			')' => SyntaxKind.CloseParenthesisToken,
 			_ => SyntaxKind.BadToken
 		};
 
-		Advance();
-		
-		if (kind == SyntaxKind.BadToken)
-			Diagnostics.Add($"'{GetText(start)}' is not a valid token.");
-			
-		return new(kind, start, GetText(start));
+		Advance(kind.GetAdvanceQuantity());
+		return kind;
 	}
 }

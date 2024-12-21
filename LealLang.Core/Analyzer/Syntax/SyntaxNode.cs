@@ -62,7 +62,7 @@ public abstract class SyntaxNode
 
 	private static ConsoleColor GetColorNode(SyntaxNode node) => node.Kind switch
 	{
-		SyntaxKind.NumberToken => ConsoleColor.Cyan,
+		SyntaxKind.LiteralToken => ConsoleColor.Cyan,
 
 		SyntaxKind.PlusToken or
 		SyntaxKind.MinusToken or

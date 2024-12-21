@@ -54,13 +54,15 @@ public sealed class Parser
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
-		SyntaxKind.NumberExpression => ParseNumberExpression(),
+		SyntaxKind.LiteralExpression => ParseNumberExpression(),
 		_ => ParseBinaryExpression(),
 	};
 
 	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
 	{
 		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
+		SyntaxKind.TrueKeyword or 
+		SyntaxKind.FalseKeyword => ParseBooleanExpression(),
 		_ => ParseNumberExpression()
 	};
 
@@ -90,6 +92,7 @@ public sealed class Parser
 		while (true)
 		{
 			var precedence = Current.Kind.GetBinaryPrecedence();
+			
 			if (precedence == 0 || precedence <= parentPrecedence)
 				break;
 
@@ -98,13 +101,19 @@ public sealed class Parser
 
 			left = new BinaryExpressionSyntax(left, operatorToken, right);
 		}
-
+		
 		return left;
 	}
 
-	private ExpressionSyntax ParseNumberExpression()
+	private LiteralExpressionSyntax ParseNumberExpression()
 	{
-		var token = Match(SyntaxKind.NumberToken);
+		var token = Match(SyntaxKind.LiteralToken);
 		return new LiteralExpressionSyntax(token);
+	}
+
+	private LiteralExpressionSyntax ParseBooleanExpression()
+	{
+		var value = Current.Kind == SyntaxKind.TrueKeyword;
+		return new LiteralExpressionSyntax(NextToken(), value);
 	}
 }

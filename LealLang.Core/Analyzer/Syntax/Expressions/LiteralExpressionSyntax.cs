@@ -2,12 +2,17 @@ namespace LealLang.Core.Analyzer.Syntax.Expressions;
 
 public sealed class LiteralExpressionSyntax : ExpressionSyntax
 {
-	public LiteralExpressionSyntax(SyntaxToken numberToken)
+	public LiteralExpressionSyntax(SyntaxToken literalToken) 
+		: this(literalToken, literalToken.Value!) { }
+
+	public LiteralExpressionSyntax(SyntaxToken literalToken, object value)
 	{
-		NumberToken = numberToken;
+		LiteralToken = literalToken;
+		Value = value;
 	}
-	
-	public SyntaxToken NumberToken { get; }
-	
-	public override SyntaxKind Kind => SyntaxKind.NumberExpression;
+
+	public SyntaxToken LiteralToken { get; }
+	public object Value { get; }
+
+	public override SyntaxKind Kind => SyntaxKind.LiteralExpression;
 }

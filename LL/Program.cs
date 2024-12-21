@@ -1,4 +1,8 @@
-﻿using LealLang.Core.Analyzer.Syntax;
+﻿
+using System.Collections.Immutable;
+using LealLang.Core.Analyzer;
+using LealLang.Core.Analyzer.Binding;
+using LealLang.Core.Analyzer.Syntax;
 
 namespace LL;
 
@@ -31,25 +35,34 @@ public static class Program
 				continue;
 			}
 
-			var diagnostics = new List<string>();
-			var parser = new Parser(input, diagnostics);
-			diagnostics = parser.Diagnostics;
+			var parser = new Parser(input, []);
 			var syntaxTree = parser.Parse();
+
+			if (CheckAndPrintError([.. parser.Diagnostics]))
+				continue;
 
 			if (showTree)
 				syntaxTree.WriteTo(Console.Out);
 
-			if (diagnostics.Count > 0)
-			{
-				Console.ForegroundColor = ConsoleColor.Red;
-				diagnostics.ForEach(Console.WriteLine);
-				Console.ResetColor();
-				continue;
-			}
+			var binder = new Binder();
+			var boundExpression = binder.BindExpression(syntaxTree);
 
-			var evaluator = new Evaluator(syntaxTree);
+			if (CheckAndPrintError([.. binder.Diagnostics]))
+				continue;
+				
+			var evaluator = new Evaluator(boundExpression!);
 			var result = evaluator.Evaluate();
 			Console.WriteLine(result);
 		}
+	}
+
+	private static bool CheckAndPrintError(ImmutableArray<string> diagnostics)
+	{
+		Console.ForegroundColor = ConsoleColor.Red;
+		if (!diagnostics.IsEmpty)
+			diagnostics.ToList().ForEach(Console.WriteLine);
+
+		Console.ResetColor();
+		return !diagnostics.IsEmpty;
 	}
 }
