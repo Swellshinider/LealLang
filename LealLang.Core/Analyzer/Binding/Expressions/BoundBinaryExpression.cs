@@ -1,17 +1,17 @@
 namespace LealLang.Core.Analyzer.Binding.Expressions;
 
-internal sealed class BoundBinaryExpression : BoundExpression 
+internal sealed class BoundBinaryExpression : BoundExpression
 {
-	public BoundBinaryExpression(BoundExpression left, BoundBinaryOperatorKind operatorKind, BoundExpression right)
+	public BoundBinaryExpression(BoundExpression left, BoundBinaryOperator binaryOperator, BoundExpression right)
 	{
 		Left = left;
-        OperatorKind = operatorKind;
-        Right = right;
+		BinaryOperator = binaryOperator;
+		Right = right;
 	}
 
 	public BoundExpression Left { get; }
-    public BoundBinaryOperatorKind OperatorKind { get; }
-    public BoundExpression Right { get; }
+	public BoundBinaryOperator BinaryOperator { get; }
+	public BoundExpression Right { get; }
 
 	public override Type Type => Left.Type;
 	public override BoundNodeKind Kind => BoundNodeKind.BinaryExpression;

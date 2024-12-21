@@ -2,13 +2,13 @@ namespace LealLang.Core.Analyzer.Binding.Expressions;
 
 internal sealed class BoundUnaryExpression : BoundExpression 
 {
-	public BoundUnaryExpression(BoundUnaryOperatorKind operatorKind, BoundExpression operand)
+	public BoundUnaryExpression(BoundUnaryOperator unaryOperator, BoundExpression operand)
 	{
-		OperatorKind = operatorKind;
+		UnaryOperator = unaryOperator;
 		Operand = operand;
 	}
 
-	public BoundUnaryOperatorKind OperatorKind { get; }
+	public BoundUnaryOperator UnaryOperator { get; }
 	public BoundExpression Operand { get; }
 	
 	public override Type Type => Operand.Type;

@@ -33,7 +33,7 @@ public sealed class Evaluator
 		var left = EvaluateExpression(binaryExpression.Left);
 		var right = EvaluateExpression(binaryExpression.Right);
 
-		return binaryExpression.OperatorKind switch
+		return binaryExpression.BinaryOperator.Kind switch
 		{
 			BoundBinaryOperatorKind.Addition => (int)left + (int)right,
 			BoundBinaryOperatorKind.Subtraction => (int)left - (int)right,
@@ -47,7 +47,7 @@ public sealed class Evaluator
 
 	private object EvaluateUnaryExpression(BoundUnaryExpression unaryExpression)
 	{
-		return unaryExpression.OperatorKind switch
+		return unaryExpression.UnaryOperator.Kind switch
 		{
 			BoundUnaryOperatorKind.Negation => -(int)EvaluateExpression(unaryExpression.Operand),
 			BoundUnaryOperatorKind.Identity => (int)EvaluateExpression(unaryExpression.Operand),
