@@ -16,22 +16,27 @@ public static class SyntaxDefinitions
 	
 	public static int GetUnaryPrecedence(this SyntaxKind kind) => kind switch 
 	{
+		SyntaxKind.ExclamationToken => 8,
+		
 		SyntaxKind.MinusToken or
-		SyntaxKind.PlusToken or
-		SyntaxKind.ExclamationToken => 4,
+		SyntaxKind.PlusToken => 7,
 		
 		_ => 0,	
 	};
 	
 	public static int GetBinaryPrecedence(this SyntaxKind kind) => kind switch 
 	{
-		SyntaxKind.OpenParenthesisToken => 3,
+		SyntaxKind.OpenParenthesisToken => 6,
+		
+		SyntaxKind.EqualsEqualsToken or 
+		SyntaxKind.AmpersandAmpersandToken or 
+		SyntaxKind.PipePipeToken => 5,
+
+		SyntaxKind.PipeToken or		
+		SyntaxKind.AmpersandToken => 4,
 		
 		SyntaxKind.SlashToken or
-		SyntaxKind.StarToken or 
-		SyntaxKind.AmpersandAmpersandToken or 
-		SyntaxKind.EqualsEqualsToken or 
-		SyntaxKind.PipePipeToken => 2,
+		SyntaxKind.StarToken => 3,
 		
 		SyntaxKind.MinusToken or
 		SyntaxKind.PlusToken => 1,
