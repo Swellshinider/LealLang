@@ -3,7 +3,7 @@ using LealLang.Core.Analyzer.Binding.Expressions;
 
 namespace LealLang.Core.Analyzer;
 
-public sealed class Evaluator
+internal sealed class Evaluator
 {
 	private readonly BoundExpression _expression;
 
@@ -24,7 +24,7 @@ public sealed class Evaluator
 		BoundNodeKind.UnaryExpression => EvaluateUnaryExpression((BoundUnaryExpression)expression),
 		_ => -1
 	};
-	
+
 	private static object EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
 		=> literalExpression.Value;
 

@@ -2,6 +2,7 @@
 using System.Collections.Immutable;
 using LealLang.Core.Analyzer;
 using LealLang.Core.Analyzer.Binding;
+using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
 
 namespace LL;
@@ -35,34 +36,36 @@ public static class Program
 				continue;
 			}
 
-			var parser = new Parser(input, []);
-			var syntaxTree = parser.Parse();
+			var syntaxTree = SyntaxTree.Parse(input);
+			var compilation = new Compilation(syntaxTree);
+			var result = compilation.Evaluate();
 
-			if (CheckAndPrintError([.. parser.Diagnostics]))
-				continue;
-
-			if (showTree)
-				syntaxTree.WriteTo(Console.Out);
-
-			var binder = new Binder();
-			var boundExpression = binder.BindExpression(syntaxTree);
-
-			if (CheckAndPrintError([.. binder.Diagnostics]))
-				continue;
-				
-			var evaluator = new Evaluator(boundExpression!);
-			var result = evaluator.Evaluate();
-			Console.WriteLine(result);
+			if (!ValidateAndDisplayErrors(input, [.. result.Diagnostics]))
+				Console.WriteLine(result.Value);
 		}
 	}
 
-	private static bool CheckAndPrintError(ImmutableArray<string> diagnostics)
+	private static bool ValidateAndDisplayErrors(string text, ImmutableArray<Diagnostic> diagnostics)
 	{
-		Console.ForegroundColor = ConsoleColor.Red;
-		if (!diagnostics.IsEmpty)
-			diagnostics.ToList().ForEach(Console.WriteLine);
-
-		Console.ResetColor();
+		foreach (var diagnostic in diagnostics) 
+		{
+			Console.ForegroundColor = ConsoleColor.DarkRed;
+			Console.WriteLine(diagnostic);
+			Console.ResetColor();
+			
+			var part1 = text[..diagnostic.Span.Start];
+			var error = text.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+			var part2 = text[diagnostic.Span.End..];
+			
+			Console.Write("    " + part1);
+			
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.Write(error);
+			Console.ResetColor();
+			
+			Console.WriteLine(part2);
+		}
+		
 		return !diagnostics.IsEmpty;
 	}
 }

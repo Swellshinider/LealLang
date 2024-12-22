@@ -1,14 +1,15 @@
 using LealLang.Core.Analyzer.Binding.Expressions;
+using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
 using LealLang.Core.Analyzer.Syntax.Expressions;
 
 namespace LealLang.Core.Analyzer.Binding;
 
-public sealed class Binder
+internal sealed class Binder
 {
-	private readonly List<string> _diagnostics = [];
+	private readonly DiagnosticManager _diagnostics = new();
 
-	public List<string> Diagnostics => _diagnostics;
+	public DiagnosticManager Diagnostics => _diagnostics;
 
 	public BoundExpression? BindExpression(ExpressionSyntax syntax) => syntax.Kind switch
 	{
@@ -16,14 +17,8 @@ public sealed class Binder
 		SyntaxKind.BinaryExpression => BindBinaryExpression((BinaryExpressionSyntax)syntax),
 		SyntaxKind.UnaryExpression => BindUnaryExpression((UnaryExpressionSyntax)syntax),
 		SyntaxKind.ParenthesizedExpression => BindExpression(((ParenthesizedExpressionSyntax)syntax).Expression),
-		_ => AddErrorAndReturnNull($"Unexpected syntax <{syntax.Kind}>"),
+		_ => throw new($"Unexpected syntax expression <{syntax.Kind}>"),
 	};
-
-	private BoundExpression? AddErrorAndReturnNull(string message)
-	{
-		Diagnostics.Add(message);
-		return null;
-	}
 
 	private BoundExpression BindUnaryExpression(UnaryExpressionSyntax unarySyntax)
 	{
@@ -32,7 +27,7 @@ public sealed class Binder
 		
 		if (unaryOperator == null) 
 		{
-			Diagnostics.Add($"Unary operator '{unarySyntax.OperatorToken.Text}' is not defined for type <{boundOperand.Type}>");
+			_diagnostics.ReportInvalidUnaryOperator(unarySyntax.OperatorToken.Span, unarySyntax.OperatorToken.Text, boundOperand.Type);
 			return boundOperand;
 		}
 
@@ -47,7 +42,7 @@ public sealed class Binder
 			
 		if (binaryOperator == null) 
 		{
-			Diagnostics.Add($"Binary operator '{binarySyntax.OperatorToken.Text}' is not defined for types <{leftExpression.Type}> and <{rightExpression.Type}>");
+			_diagnostics.ReportInvalidBinaryOperator(binarySyntax.OperatorToken.Span, binarySyntax.OperatorToken.Text, leftExpression.Type, rightExpression.Type);
 			return leftExpression;
 		}
 

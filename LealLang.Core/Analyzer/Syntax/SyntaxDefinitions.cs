@@ -6,29 +6,24 @@ public static class SyntaxDefinitions
 	{
 		SyntaxKind.NotToken or
 		SyntaxKind.MinusToken or
-		SyntaxKind.PlusToken => 8,
+		SyntaxKind.PlusToken => 5,
 		
 		_ => 0,	
 	};
 	
 	public static int GetBinaryPrecedence(this SyntaxKind kind) => kind switch 
 	{
-		SyntaxKind.OpenParenthesisToken => 7,
-		
-		SyntaxKind.EqualsEqualsToken => 6,
-		SyntaxKind.NotEqualsToken => 6,
-		 
-		SyntaxKind.AmpersandAmpersandToken or 
-		SyntaxKind.PipePipeToken => 5,
-
-		SyntaxKind.PipeToken or		
-		SyntaxKind.AmpersandToken => 4,
-		
 		SyntaxKind.SlashToken or
-		SyntaxKind.StarToken => 3,
+		SyntaxKind.StarToken => 4,
 		
 		SyntaxKind.MinusToken or
-		SyntaxKind.PlusToken => 1,
+		SyntaxKind.PlusToken => 3,
+		
+		SyntaxKind.EqualsEqualsToken => 2,
+		SyntaxKind.NotEqualsToken => 2,
+		 
+		SyntaxKind.AmpersandAmpersandToken or 
+		SyntaxKind.PipePipeToken => 1,
 		
 		_ => 0,
 	};
