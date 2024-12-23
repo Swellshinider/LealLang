@@ -1,32 +1,37 @@
 
+using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax.Expressions;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
-public sealed class Parser
+internal sealed class Parser
 {
+	private readonly DiagnosticManager _diagnostics = new();
 	private readonly List<SyntaxToken> _tokens = [];
 	private int _position = 0;
 
-	public Parser(string text, List<string> diagnostics)
+	public Parser(string text)
 	{
-		var lexer = new Lexer(text, diagnostics);
+		var lexer = new Lexer(text);
 		SyntaxToken token;
 
 		do
 		{
 			token = lexer.Lex();
 
-			if (token.Kind != SyntaxKind.WhitespaceToken && token.Kind != SyntaxKind.BadToken)
+			if (token.Kind != SyntaxKind.WhitespaceToken &&
+				token.Kind != SyntaxKind.BadToken)
 				_tokens.Add(token);
 
 		} while (token.Kind != SyntaxKind.EndOfFileToken);
-		Diagnostics = lexer.Diagnostics;
+
+		_diagnostics.AddRange(lexer.Diagnostics);
 	}
 
-	public List<string> Diagnostics { get; }
-	
+	public DiagnosticManager Diagnostics => _diagnostics;
+
 	private SyntaxToken Current => Peek(0);
+	private SyntaxToken LookNext => Peek(1);
 
 	private SyntaxToken Peek(int offset)
 	{
@@ -46,25 +51,45 @@ public sealed class Parser
 		if (Current.Kind == kind)
 			return NextToken();
 
-		Diagnostics.Add($"Invalid token '{Current.Kind}' at '{Current.Position}', expected: '{kind}'");
+		Diagnostics.ReportTokenDidNotMatched(Current.Span, Current.Kind, kind);
 		return new(kind, Current.Position, null, null);
 	}
 
-	public ExpressionSyntax Parse() => ParseExpression();
+	public SyntaxTree Parse()
+	{
+		var expression = ParseExpression();
+		var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
+		return new SyntaxTree(Diagnostics, expression, endOfFileToken);
+	}
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
-		SyntaxKind.LiteralExpression => ParseNumberExpression(),
-		_ => ParseBinaryExpression(),
+		SyntaxKind.LiteralExpression => ParsePrimaryExpression(),
+		_ => ParseAssignmentExpression(),
 	};
 
 	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
 	{
 		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
-		SyntaxKind.TrueKeyword or 
+		SyntaxKind.TrueKeyword or
 		SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+		SyntaxKind.IdentifierToken => new NameExpressionSyntax(NextToken()),
 		_ => ParseNumberExpression()
 	};
+
+	private ExpressionSyntax ParseAssignmentExpression()
+	{
+		if (Current.Kind == SyntaxKind.IdentifierToken &&
+			LookNext.Kind == SyntaxKind.EqualsToken)
+		{
+			var identifierToken = NextToken();
+			var equalsToken = NextToken();
+			var right = ParseAssignmentExpression();
+			return new AssignmentExpressionSyntax(identifierToken, equalsToken, right);
+		}
+
+		return ParseBinaryExpression();
+	}
 
 	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
 	{
@@ -92,7 +117,7 @@ public sealed class Parser
 		while (true)
 		{
 			var precedence = Current.Kind.GetBinaryPrecedence();
-			
+
 			if (precedence == 0 || precedence <= parentPrecedence)
 				break;
 
@@ -101,7 +126,7 @@ public sealed class Parser
 
 			left = new BinaryExpressionSyntax(left, operatorToken, right);
 		}
-		
+
 		return left;
 	}
 

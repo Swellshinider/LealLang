@@ -46,7 +46,7 @@ public abstract class SyntaxNode
 		writer.Write(node.Kind);
 
 		if (node is SyntaxToken st && st.Value != null)
-			writer.Write($" {st.Value}");
+			writer.Write(st.Kind == SyntaxKind.IdentifierToken ? $" {st.Text}" : $" {st.Value}");
 
 		if (toConsole)
 			Console.ResetColor();

@@ -2,7 +2,9 @@
 using System.Collections.Immutable;
 using LealLang.Core.Analyzer;
 using LealLang.Core.Analyzer.Binding;
+using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
+using LealLang.Core.Analyzer.Text;
 
 namespace LL;
 
@@ -10,8 +12,9 @@ public static class Program
 {
 	public static void Main(string[] args)
 	{
-		Console.Title = "LealLang: Interactive Console";
 		var showTree = false;
+		var variables = new Dictionary<VariableSymbol, object?>();
+
 		while (true)
 		{
 			Console.ForegroundColor = ConsoleColor.Cyan;
@@ -35,34 +38,50 @@ public static class Program
 				continue;
 			}
 
-			var parser = new Parser(input, []);
-			var syntaxTree = parser.Parse();
-
-			if (CheckAndPrintError([.. parser.Diagnostics]))
+			if (input == "#showVar")
+			{
+				Console.WriteLine();
+				foreach (var v in variables)
+					Console.WriteLine($"{v.Key}->{v.Value}");
 				continue;
+			}
+
+			var syntaxTree = SyntaxTree.Parse(input);
 
 			if (showTree)
-				syntaxTree.WriteTo(Console.Out);
+				syntaxTree.RootExpression.WriteTo(Console.Out);
 
-			var binder = new Binder();
-			var boundExpression = binder.BindExpression(syntaxTree);
+			var compilation = new Compilation(syntaxTree);
+			var result = compilation.Evaluate(variables);
 
-			if (CheckAndPrintError([.. binder.Diagnostics]))
-				continue;
-				
-			var evaluator = new Evaluator(boundExpression!);
-			var result = evaluator.Evaluate();
-			Console.WriteLine(result);
+			if (!ValidateAndDisplayErrors(input, [.. result.Diagnostics]))
+				Console.WriteLine(result.Value);
 		}
 	}
 
-	private static bool CheckAndPrintError(ImmutableArray<string> diagnostics)
+	private static bool ValidateAndDisplayErrors(string text, ImmutableArray<Diagnostic> diagnostics)
 	{
-		Console.ForegroundColor = ConsoleColor.Red;
-		if (!diagnostics.IsEmpty)
-			diagnostics.ToList().ForEach(Console.WriteLine);
+		foreach (var diagnostic in diagnostics)
+		{
+			Console.WriteLine();
+			Console.ForegroundColor = ConsoleColor.DarkRed;
+			Console.WriteLine(diagnostic);
+			Console.ResetColor();
 
-		Console.ResetColor();
+			var part1 = text[..diagnostic.Span.Start];
+			var error = text.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+			var part2 = text[diagnostic.Span.End..];
+
+			Console.Write("    ");
+			Console.Write(part1);
+
+			Console.ForegroundColor = ConsoleColor.Red;
+			Console.Write(error);
+			Console.ResetColor();
+
+			Console.WriteLine(part2);
+		}
+
 		return !diagnostics.IsEmpty;
 	}
 }

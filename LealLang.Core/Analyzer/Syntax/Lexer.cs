@@ -1,19 +1,20 @@
+using LealLang.Core.Analyzer.Diagnostics;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
 public sealed class Lexer
 {
+	private readonly DiagnosticManager _diagnostics = new();
 	private readonly string _text;
 	private int _position;
 
-	public Lexer(string text, List<string> diagnostics)
+	public Lexer(string text)
 	{
 		_text = text;
 		_position = 0;
-		Diagnostics = diagnostics;
 	}
 
-	public List<string> Diagnostics { get; }
+	internal DiagnosticManager Diagnostics => _diagnostics;
 
 	private char Current => Peek(0);
 
@@ -41,12 +42,12 @@ public sealed class Lexer
 			while (char.IsDigit(Current))
 				Advance();
 
-			var text = GetText(start);
+			var integerText = GetText(start);
 
-			if (!int.TryParse(text, out var value))
-				Diagnostics.Add($"The number '{text}' is not a valid Int32.");
+			if (!int.TryParse(integerText, out var value))
+				_diagnostics.ReportInvalidType(start, _position, integerText, typeof(int));
 
-			return new(SyntaxKind.LiteralToken, start, text, value);
+			return new(SyntaxKind.LiteralToken, start, integerText, value);
 		}
 
 		if (char.IsWhiteSpace(Current))
@@ -62,21 +63,11 @@ public sealed class Lexer
 			while (char.IsLetterOrDigit(Current))
 				Advance();
 
-			var text = GetText(start);
-			var literalKind = text.GetKeywordKind();
-			return new(literalKind, start, text);
+			var literalText = GetText(start);
+			var literalKind = literalText.GetKeywordKind();
+			return new(literalKind, start, literalText);
 		}
 
-		var kind = ReadIsolatedTokens();
-
-		if (kind == SyntaxKind.BadToken)
-			Diagnostics.Add($"'{GetText(start)}' is not a valid token.");
-
-		return new(kind, start, GetText(start));
-	}
-
-	private SyntaxKind ReadIsolatedTokens()
-	{
 		var kind = Current switch
 		{
 			'+' => SyntaxKind.PlusToken,
@@ -97,6 +88,11 @@ public sealed class Lexer
 		};
 
 		Advance(kind.GetAdvanceQuantity());
-		return kind;
+		var text = GetText(start);
+
+		if (kind == SyntaxKind.BadToken)
+			_diagnostics.ReportBadToken(start, _position, text);
+
+		return new(kind, start, text);
 	}
 }

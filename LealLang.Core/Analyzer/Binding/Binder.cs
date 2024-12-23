@@ -1,38 +1,45 @@
 using LealLang.Core.Analyzer.Binding.Expressions;
+using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
 using LealLang.Core.Analyzer.Syntax.Expressions;
+using LealLang.Core.Analyzer.Text;
 
 namespace LealLang.Core.Analyzer.Binding;
 
-public sealed class Binder
+internal sealed class Binder
 {
-	private readonly List<string> _diagnostics = [];
+	private readonly DiagnosticManager _diagnostics = new();
+	private readonly Dictionary<VariableSymbol, object?> _variables;
 
-	public List<string> Diagnostics => _diagnostics;
+	public Binder(Dictionary<VariableSymbol, object?> variables)
+	{
+		_variables = variables;
+	}
 
-	public BoundExpression? BindExpression(ExpressionSyntax syntax) => syntax.Kind switch
+	public DiagnosticManager Diagnostics => _diagnostics;
+
+	public BoundExpression BindExpression(ExpressionSyntax syntax) => syntax.Kind switch
 	{
 		SyntaxKind.LiteralExpression => BindLiteralExpression((LiteralExpressionSyntax)syntax),
-		SyntaxKind.BinaryExpression => BindBinaryExpression((BinaryExpressionSyntax)syntax),
 		SyntaxKind.UnaryExpression => BindUnaryExpression((UnaryExpressionSyntax)syntax),
-		SyntaxKind.ParenthesizedExpression => BindExpression(((ParenthesizedExpressionSyntax)syntax).Expression),
-		_ => AddErrorAndReturnNull($"Unexpected syntax <{syntax.Kind}>"),
+		SyntaxKind.BinaryExpression => BindBinaryExpression((BinaryExpressionSyntax)syntax),
+		SyntaxKind.ParenthesizedExpression => BindParenthesizedExpression((ParenthesizedExpressionSyntax)syntax),
+		SyntaxKind.NameExpression => BindNameExpression((NameExpressionSyntax)syntax),
+		SyntaxKind.AssignmentExpression => BindAssignmentExpression((AssignmentExpressionSyntax)syntax),
+		_ => throw new($"Unexpected syntax expression <{syntax.Kind}>"),
 	};
 
-	private BoundExpression? AddErrorAndReturnNull(string message)
-	{
-		Diagnostics.Add(message);
-		return null;
-	}
+	private static BoundLiteralExpression BindLiteralExpression(LiteralExpressionSyntax literalSyntax)
+		=> new(literalSyntax.Value);
 
 	private BoundExpression BindUnaryExpression(UnaryExpressionSyntax unarySyntax)
 	{
 		var boundOperand = BindExpression(unarySyntax.Operand)!;
 		var unaryOperator = BoundUnaryOperator.Bind(unarySyntax.OperatorToken.Kind, boundOperand.Type);
-		
-		if (unaryOperator == null) 
+
+		if (unaryOperator == null)
 		{
-			Diagnostics.Add($"Unary operator '{unarySyntax.OperatorToken.Text}' is not defined for type <{boundOperand.Type}>");
+			_diagnostics.ReportInvalidUnaryOperator(unarySyntax.OperatorToken.Span, unarySyntax.OperatorToken.Text, boundOperand.Type);
 			return boundOperand;
 		}
 
@@ -44,16 +51,46 @@ public sealed class Binder
 		var leftExpression = BindExpression(binarySyntax.Left)!;
 		var rightExpression = BindExpression(binarySyntax.Right)!;
 		var binaryOperator = BoundBinaryOperator.Bind(binarySyntax.OperatorToken.Kind, leftExpression.Type, rightExpression.Type);
-			
-		if (binaryOperator == null) 
+
+		if (binaryOperator == null)
 		{
-			Diagnostics.Add($"Binary operator '{binarySyntax.OperatorToken.Text}' is not defined for types <{leftExpression.Type}> and <{rightExpression.Type}>");
+			_diagnostics.ReportInvalidBinaryOperator(binarySyntax.OperatorToken.Span, binarySyntax.OperatorToken.Text, leftExpression.Type, rightExpression.Type);
 			return leftExpression;
 		}
 
 		return new BoundBinaryExpression(leftExpression, binaryOperator, rightExpression);
 	}
 
-	private static BoundLiteralExpression BindLiteralExpression(LiteralExpressionSyntax literalSyntax)
-		=> new(literalSyntax.Value);
+	private BoundExpression BindParenthesizedExpression(ParenthesizedExpressionSyntax parenthesizedSyntax)
+		=> BindExpression(parenthesizedSyntax.Expression);
+
+	private BoundExpression BindNameExpression(NameExpressionSyntax nameSyntax)
+	{
+		var name = nameSyntax.IdentifierToken.Text ?? "";
+		var variable = _variables.Keys.FirstOrDefault(v => v.Name == name);
+
+		if (variable.Equals(default(VariableSymbol)))
+		{
+			_diagnostics.ReportUndefinedName(nameSyntax.IdentifierToken.Span, name);
+			return new BoundLiteralExpression(0);
+		}
+
+		return new BoundVariableExpression(variable);
+	}
+
+	private BoundAssignmentExpression BindAssignmentExpression(AssignmentExpressionSyntax assignmentSyntax)
+	{
+		var name = assignmentSyntax.IdentifierToken.Text ?? "";
+		var boundExpression = BindExpression(assignmentSyntax.Expression);
+		
+		var existVariable = _variables.Keys.FirstOrDefault(v => v.Name == name);
+		
+		if (!existVariable.Equals(default(VariableSymbol)))
+			_variables.Remove(existVariable);
+			
+		var variable = new VariableSymbol(name, boundExpression.Type);
+		_variables.Add(variable, null);
+		
+		return new BoundAssignmentExpression(variable, boundExpression);
+	}
 }
