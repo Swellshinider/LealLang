@@ -2,11 +2,11 @@ using LealLang.Core.Analyzer.Syntax;
 
 namespace LealLang.Tests.Analyzer.Syntax;
 
-public class LexerTest
+public class LexerTests
 {
 	[Theory]
 	[MemberData(nameof(GetTokensData))]
-	public void Lex_GivenText_ReturnsExpectedTokens(string text, SyntaxKind expectedKind, string expectedText)
+	public void Lexer_TokenizeOneToken_ReturnsExpectedTokens(string text, SyntaxKind expectedKind, string expectedText)
 	{
 		var tokens = SyntaxTree.ParseTokens(text);
 
@@ -17,7 +17,7 @@ public class LexerTest
 
 	[Theory]
 	[MemberData(nameof(GetTokenPairsData))]
-	public void Lex_GivenTextWithTwoTokens_ReturnsExpectedTokens(SyntaxKind kind1, string text1, SyntaxKind kind2, string text2)
+	public void Lexer_TokenizeTwoTokens_ReturnsExpectedTokens(SyntaxKind kind1, string text1, SyntaxKind kind2, string text2)
 	{
 		var text = text1 + text2;
 		var tokens = SyntaxTree.ParseTokens(text).ToArray();
@@ -31,7 +31,7 @@ public class LexerTest
 
 	[Theory]
 	[MemberData(nameof(GetTokenPairsWithSeparatorData))]
-	public void Lex_GivenTextWithTwoTokensAndSeparators_ReturnsExpectedTokens(SyntaxKind kind1, string text1, SyntaxKind separatorKind, string separatorText, SyntaxKind kind2, string text2)
+	public void Lexer_TokenizeTwoTokensWithSeparators_ReturnsExpectedTokens(SyntaxKind kind1, string text1, SyntaxKind separatorKind, string separatorText, SyntaxKind kind2, string text2)
 	{
 		var text = text1 + separatorText + text2;
 		var tokens = SyntaxTree.ParseTokens(text).ToArray();
@@ -107,7 +107,6 @@ public class LexerTest
 		
 		return incompatiblePairs.Contains((t1Kind, t2Kind));
 	}
-
 
 	private static IEnumerable<(SyntaxKind kind1, string text1, SyntaxKind kind2, string text2)> GetTokenPairs()
 	{
