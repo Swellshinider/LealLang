@@ -2,7 +2,7 @@ using LealLang.Core.Analyzer.Diagnostics;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
-public sealed class Lexer
+internal sealed class Lexer
 {
 	private readonly DiagnosticManager _diagnostics = new();
 	private readonly string _text;
