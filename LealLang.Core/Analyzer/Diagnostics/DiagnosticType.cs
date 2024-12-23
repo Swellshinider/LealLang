@@ -6,5 +6,6 @@ namespace LealLang.Core.Analyzer.Diagnostics
 		TypeError,
 		BadToken,
         InvalidOperation,
+        NameDoesNotExist,
     }
 }

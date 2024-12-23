@@ -19,18 +19,19 @@ internal sealed class Parser
 		{
 			token = lexer.Lex();
 
-			if (token.Kind != SyntaxKind.WhitespaceToken && 
+			if (token.Kind != SyntaxKind.WhitespaceToken &&
 				token.Kind != SyntaxKind.BadToken)
 				_tokens.Add(token);
 
 		} while (token.Kind != SyntaxKind.EndOfFileToken);
-		
+
 		_diagnostics.AddRange(lexer.Diagnostics);
 	}
 
 	public DiagnosticManager Diagnostics => _diagnostics;
 
 	private SyntaxToken Current => Peek(0);
+	private SyntaxToken LookNext => Peek(1);
 
 	private SyntaxToken Peek(int offset)
 	{
@@ -63,8 +64,8 @@ internal sealed class Parser
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
-		SyntaxKind.LiteralExpression => ParseNumberExpression(),
-		_ => ParseBinaryExpression(),
+		SyntaxKind.LiteralExpression => ParsePrimaryExpression(),
+		_ => ParseAssignmentExpression(),
 	};
 
 	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
@@ -72,8 +73,23 @@ internal sealed class Parser
 		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
 		SyntaxKind.TrueKeyword or
 		SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+		SyntaxKind.IdentifierToken => new NameExpressionSyntax(NextToken()),
 		_ => ParseNumberExpression()
 	};
+
+	private ExpressionSyntax ParseAssignmentExpression()
+	{
+		if (Current.Kind == SyntaxKind.IdentifierToken &&
+			LookNext.Kind == SyntaxKind.EqualsToken)
+		{
+			var identifierToken = NextToken();
+			var equalsToken = NextToken();
+			var right = ParseAssignmentExpression();
+			return new AssignmentExpressionSyntax(identifierToken, equalsToken, right);
+		}
+
+		return ParseBinaryExpression();
+	}
 
 	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
 	{

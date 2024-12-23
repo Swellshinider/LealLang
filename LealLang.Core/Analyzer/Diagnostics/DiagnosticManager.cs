@@ -48,4 +48,10 @@ public sealed class DiagnosticManager : IEnumerable<Diagnostic>
 		var message = $"Binary operator '{operatorText}' is not defined for types <{leftType}> and <{rightType}>";
 		Report(DiagnosticType.InvalidOperation, span, message);
 	}
+
+	internal void ReportUndefinedName(TextSpan span, string name)
+	{
+		var message = $"Variable '{name}' does not exist in the current context";
+		Report(DiagnosticType.NameDoesNotExist, span, message);
+	}
 }

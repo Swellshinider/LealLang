@@ -34,5 +34,7 @@ public enum SyntaxKind
 	BinaryExpression,
 	UnaryExpression,
 	ParenthesizedExpression,
-	#endregion
+    NameExpression,
+    AssignmentExpression,
+    #endregion
 }
