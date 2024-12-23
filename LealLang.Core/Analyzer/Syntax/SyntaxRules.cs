@@ -45,7 +45,7 @@ public static class SyntaxRules
 		_ => SyntaxKind.IdentifierToken
 	};
 
-	public static string GetText(this SyntaxKind kind) => kind switch
+	public static string? GetText(this SyntaxKind kind) => kind switch
 	{
 		SyntaxKind.PlusToken => "+",
 		SyntaxKind.MinusToken => "-",
@@ -63,6 +63,6 @@ public static class SyntaxRules
 		SyntaxKind.CloseParenthesisToken => ")",
 		SyntaxKind.TrueKeyword => "true",
 		SyntaxKind.FalseKeyword => "false",
-		_ => ""
+		_ => null
 	};
 }
