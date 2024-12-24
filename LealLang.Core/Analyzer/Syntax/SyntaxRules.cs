@@ -34,7 +34,7 @@ public static class SyntaxRules
 		SyntaxKind.NotEqualsToken or
 		SyntaxKind.AmpersandAmpersandToken or
 		SyntaxKind.PipePipeToken => 2,
-		
+
 		_ => 1
 	};
 
@@ -44,6 +44,24 @@ public static class SyntaxRules
 		"false" => SyntaxKind.FalseKeyword,
 		_ => SyntaxKind.IdentifierToken
 	};
+
+	public static IEnumerable<SyntaxKind> GetUnaryOperatorKinds()
+	{
+		var kinds = Enum.GetValues<SyntaxKind>();
+
+		foreach (var kind in kinds)
+			if (kind.GetUnaryPrecedence() > 0)
+				yield return kind;
+	}
+
+	public static IEnumerable<SyntaxKind> GetBinaryOperatorKinds()
+	{
+		var kinds = Enum.GetValues<SyntaxKind>();
+
+		foreach (var kind in kinds)
+			if (kind.GetBinaryPrecedence() > 0)
+				yield return kind;
+	}
 
 	public static string? GetText(this SyntaxKind kind) => kind switch
 	{
