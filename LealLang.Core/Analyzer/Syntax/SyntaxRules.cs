@@ -19,8 +19,12 @@ public static class SyntaxRules
 		SyntaxKind.MinusToken or
 		SyntaxKind.PlusToken => 3,
 
-		SyntaxKind.EqualsEqualsToken => 2,
-		SyntaxKind.NotEqualsToken => 2,
+		SyntaxKind.EqualsEqualsToken or
+		SyntaxKind.NotEqualsToken or
+		SyntaxKind.GreaterThanToken or
+		SyntaxKind.GreaterThanOrEqualToken or
+		SyntaxKind.LessThanToken or
+		SyntaxKind.LessThanOrEqualToken => 2,
 
 		SyntaxKind.AmpersandAmpersandToken or
 		SyntaxKind.PipePipeToken => 1,
@@ -33,6 +37,8 @@ public static class SyntaxRules
 		SyntaxKind.EqualsEqualsToken or
 		SyntaxKind.NotEqualsToken or
 		SyntaxKind.AmpersandAmpersandToken or
+		SyntaxKind.GreaterThanOrEqualToken or
+		SyntaxKind.LessThanOrEqualToken or
 		SyntaxKind.PipePipeToken => 2,
 
 		_ => 1
@@ -73,6 +79,10 @@ public static class SyntaxRules
 		SyntaxKind.EqualsEqualsToken => "==",
 		SyntaxKind.NotToken => "!",
 		SyntaxKind.NotEqualsToken => "!=",
+		SyntaxKind.GreaterThanToken => ">",
+		SyntaxKind.GreaterThanOrEqualToken => ">=",
+		SyntaxKind.LessThanToken => "<",
+		SyntaxKind.LessThanOrEqualToken => "<=",
 		//SyntaxKind.PipeToken => "|",
 		SyntaxKind.PipePipeToken => "||",
 		//SyntaxKind.AmpersandToken => "&",
