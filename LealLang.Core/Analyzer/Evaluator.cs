@@ -44,10 +44,14 @@ internal sealed class Evaluator
 			BoundBinaryOperatorKind.Subtraction => (int)left - (int)right,
 			BoundBinaryOperatorKind.Multiplication => (int)left * (int)right,
 			BoundBinaryOperatorKind.Division => (int)left / (int)right,
-			BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
-			BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
 			BoundBinaryOperatorKind.LogicalEquality => Equals(left, right),
 			BoundBinaryOperatorKind.LogicalInequality => !Equals(left, right),
+			BoundBinaryOperatorKind.GreaterThan => (int)left > (int)right,
+			BoundBinaryOperatorKind.LessThan => (int)left < (int)right,
+			BoundBinaryOperatorKind.GreaterThanOrEqual => (int)left >= (int)right,
+			BoundBinaryOperatorKind.LessThanOrEqual => (int)left <= (int)right,
+			BoundBinaryOperatorKind.LogicalAnd => (bool)left && (bool)right,
+			BoundBinaryOperatorKind.LogicalOr => (bool)left || (bool)right,
 		_ => throw new($"Invalid binary operator to evaluate '{binaryExpression.BinaryOperator.Kind}'")
 		};
 	}

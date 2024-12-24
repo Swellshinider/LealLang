@@ -97,9 +97,9 @@ public class ParserTests
 	{
 		var data = new TheoryData<SyntaxKind, SyntaxKind>();
 
-		foreach (var operator1 in SyntaxRules.GetBinaryOperatorKinds())
-			foreach (var operator2 in SyntaxRules.GetBinaryOperatorKinds())
-				data.Add(operator1, operator2);
+		foreach (var unary in SyntaxRules.GetBinaryOperatorKinds())
+			foreach (var binary in SyntaxRules.GetBinaryOperatorKinds())
+				data.Add(unary, binary);
 
 		return data;
 	}
