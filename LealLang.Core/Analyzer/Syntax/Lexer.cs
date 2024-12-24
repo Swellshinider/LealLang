@@ -2,7 +2,7 @@ using LealLang.Core.Analyzer.Diagnostics;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
-public sealed class Lexer
+internal sealed class Lexer
 {
 	private readonly DiagnosticManager _diagnostics = new();
 	private readonly string _text;
@@ -78,6 +78,10 @@ public sealed class Lexer
 			'=' => SyntaxKind.EqualsToken,
 			'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
 			'!' => SyntaxKind.NotToken,
+			'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
+			'<' => SyntaxKind.LessThanToken,
+			'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
+			'>' => SyntaxKind.GreaterThanToken,
 			'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
 			'|' => SyntaxKind.PipeToken,
 			'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
