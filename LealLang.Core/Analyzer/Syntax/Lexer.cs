@@ -32,7 +32,7 @@ internal sealed class Lexer
 
 	private void Advance(int quantity = 1) => _position += quantity;
 
-	private string GetText(int offset = 0) => _text[_start..(_position + offset)];
+	private string GetText(int offset = 0) => _start >= _text.Length ? "\0" : _text[_start..(_position + offset)];
 
 	public SyntaxToken Lex()
 	{
@@ -80,8 +80,7 @@ internal sealed class Lexer
 		};
 
 		Advance(_kind.GetAdvanceQuantity());
-
-		return new(_kind, _start, _kind == SyntaxKind.EndOfFileToken ? "\0" : GetText(), _value);
+		return new(_kind, _start, GetText(), _value);
 	}
 
 	private SyntaxKind ReadLiteralNumbers()
@@ -89,10 +88,8 @@ internal sealed class Lexer
 		while (char.IsDigit(Current))
 			Advance();
 
-		var integerText = GetText();
-
-		if (!int.TryParse(integerText, out var value))
-			_diagnostics.ReportInvalidType(_start, _position, integerText, typeof(int));
+		if (!int.TryParse(GetText(), out var value))
+			_diagnostics.ReportInvalidType(_start, _position, GetText(), typeof(int));
 
 		_value = value;
 		return SyntaxKind.LiteralToken;

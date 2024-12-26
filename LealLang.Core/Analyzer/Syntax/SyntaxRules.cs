@@ -45,6 +45,7 @@ public static class SyntaxRules
 		SyntaxKind.TrueKeyword or 
 		SyntaxKind.FalseKeyword or
 		SyntaxKind.IdentifierToken or
+		SyntaxKind.EndOfFileToken or
 		SyntaxKind.LiteralToken => 0,
 		
 		_ => 1
