@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Binding;
 using LealLang.Core.Analyzer.Syntax;
 using LealLang.Core.Analyzer.Text;

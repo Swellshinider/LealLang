@@ -1,4 +1,5 @@
 
+using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax.Expressions;
 
@@ -7,7 +8,7 @@ namespace LealLang.Core.Analyzer.Syntax;
 internal sealed class Parser
 {
 	private readonly DiagnosticManager _diagnostics = new();
-	private readonly List<SyntaxToken> _tokens = [];
+	private readonly ImmutableArray<SyntaxToken> _tokens = [];
 	private int _position = 0;
 
 	public Parser(string text)
@@ -36,7 +37,7 @@ internal sealed class Parser
 	private SyntaxToken Peek(int offset)
 	{
 		var index = _position + offset;
-		return index >= _tokens.Count ? _tokens[^1] : _tokens[index];
+		return index >= _tokens.Length ? _tokens[^1] : _tokens[index];
 	}
 
 	private SyntaxToken NextToken()
