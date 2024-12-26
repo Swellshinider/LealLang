@@ -39,46 +39,52 @@ internal sealed class Lexer
 		_value = null;
 		_start = _position;
 
-		if (char.IsDigit(Current))
-			ReadNumberToken();
-		else if (char.IsWhiteSpace(Current))
-			ReadWhiteSpaceToken();
-		else if (char.IsLetter(Current))
-			ReadIdentifierToken();
-		else
+		_kind = Current switch
 		{
-			_kind = Current switch
-			{
-				'+' => SyntaxKind.PlusToken,
-				'-' => SyntaxKind.MinusToken,
-				'*' => SyntaxKind.StarToken,
-				'/' => SyntaxKind.SlashToken,
-				'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
-				'=' => SyntaxKind.EqualsToken,
-				'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
-				'!' => SyntaxKind.NotToken,
-				'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
-				'<' => SyntaxKind.LessThanToken,
-				'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
-				'>' => SyntaxKind.GreaterThanToken,
-				'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
-				'|' => SyntaxKind.PipeToken,
-				'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
-				'&' => SyntaxKind.AmpersandToken,
-				'(' => SyntaxKind.OpenParenthesisToken,
-				')' => SyntaxKind.CloseParenthesisToken,
-				
-				'\0' => SyntaxKind.EndOfFileToken,
-				_ => BadTokenDetected()
-			};
+			'+' => SyntaxKind.PlusToken,
+			'-' => SyntaxKind.MinusToken,
+			'*' => SyntaxKind.StarToken,
+			'/' => SyntaxKind.SlashToken,
+			'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
+			'=' => SyntaxKind.EqualsToken,
+			'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
+			'!' => SyntaxKind.NotToken,
+			'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
+			'<' => SyntaxKind.LessThanToken,
+			'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
+			'>' => SyntaxKind.GreaterThanToken,
+			'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
+			'|' => SyntaxKind.PipeToken,
+			'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
+			'&' => SyntaxKind.AmpersandToken,
+			'(' => SyntaxKind.OpenParenthesisToken,
+			')' => SyntaxKind.CloseParenthesisToken,
+			'0' or
+			'1' or
+			'2' or
+			'3' or
+			'4' or
+			'5' or
+			'6' or
+			'7' or
+			'8' or
+			'9' => ReadLiteralNumbers(),
 
-			Advance(_kind.GetAdvanceQuantity());
-		}
+			' ' or
+			'\t' or
+			'\n' or
+			'\r' => ReadWhitespaces(),
+
+			'\0' => SyntaxKind.EndOfFileToken,
+			_ => ReadOtherCharacters()
+		};
+
+		Advance(_kind.GetAdvanceQuantity());
 
 		return new(_kind, _start, _kind == SyntaxKind.EndOfFileToken ? "\0" : GetText(), _value);
 	}
 
-	private void ReadNumberToken()
+	private SyntaxKind ReadLiteralNumbers()
 	{
 		while (char.IsDigit(Current))
 			Advance();
@@ -89,28 +95,31 @@ internal sealed class Lexer
 			_diagnostics.ReportInvalidType(_start, _position, integerText, typeof(int));
 
 		_value = value;
-		_kind = SyntaxKind.LiteralToken;
+		return SyntaxKind.LiteralToken;
 	}
 
-	private void ReadWhiteSpaceToken()
+	private SyntaxKind ReadWhitespaces()
 	{
 		while (char.IsWhiteSpace(Current))
 			Advance();
 
-		_kind = SyntaxKind.WhitespaceToken;
+		return SyntaxKind.WhitespaceToken;
 	}
 
-	private void ReadIdentifierToken()
+	private SyntaxKind ReadOtherCharacters()
 	{
-		while (char.IsLetterOrDigit(Current))
-			Advance();
+		if (char.IsLetter(Current))
+		{
+			while (char.IsLetterOrDigit(Current))
+				Advance();
 
-		var identifierText = GetText();
-		_kind = identifierText.GetKeywordKind();
-	}
+			var identifierText = GetText();
+			return identifierText.GetKeywordKind();
+		}
+		
+		if (char.IsWhiteSpace(Current))
+			return ReadWhitespaces();
 
-	private SyntaxKind BadTokenDetected()
-	{
 		_diagnostics.ReportBadToken(_start, _position, GetText(1));
 		return SyntaxKind.BadToken;
 	}
