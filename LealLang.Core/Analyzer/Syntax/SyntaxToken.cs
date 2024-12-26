@@ -15,7 +15,7 @@ public sealed class SyntaxToken : SyntaxNode
 	public int Position { get; set; }
 	public string? Text { get; set; }
 	public object? Value { get; set; }
-	public TextSpan Span => new(Position, (Text ?? "").Length);
 	
 	public override SyntaxKind Kind { get; }
+	public override TextSpan Span => new(Position, Text?.Length ?? 0);
 }
