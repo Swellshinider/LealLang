@@ -68,15 +68,6 @@ internal sealed class Parser
 		_ => ParseAssignmentExpression(),
 	};
 
-	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
-	{
-		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
-		SyntaxKind.TrueKeyword or
-		SyntaxKind.FalseKeyword => ParseBooleanExpression(),
-		SyntaxKind.IdentifierToken => new NameExpressionSyntax(NextToken()),
-		_ => ParseNumberExpression()
-	};
-
 	private ExpressionSyntax ParseAssignmentExpression()
 	{
 		if (Current.Kind == SyntaxKind.IdentifierToken &&
@@ -89,15 +80,6 @@ internal sealed class Parser
 		}
 
 		return ParseBinaryExpression();
-	}
-
-	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
-	{
-		var openParenthesisToken = Match(SyntaxKind.OpenParenthesisToken);
-		var expression = ParseExpression();
-		var closeParenthesisToken = Match(SyntaxKind.CloseParenthesisToken);
-
-		return new ParenthesizedExpressionSyntax(openParenthesisToken, expression, closeParenthesisToken);
 	}
 
 	private ExpressionSyntax ParseBinaryExpression(int parentPrecedence = 0)
@@ -130,6 +112,29 @@ internal sealed class Parser
 		return left;
 	}
 
+	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
+	{
+		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
+		SyntaxKind.IdentifierToken => ParseNameExpression(),
+		SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+		_ => ParseNumberExpression()
+	};
+
+	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
+	{
+		var openParenthesisToken = Match(SyntaxKind.OpenParenthesisToken);
+		var expression = ParseExpression();
+		var closeParenthesisToken = Match(SyntaxKind.CloseParenthesisToken);
+
+		return new ParenthesizedExpressionSyntax(openParenthesisToken, expression, closeParenthesisToken);
+	}
+
+	private NameExpressionSyntax ParseNameExpression()
+	{
+		var identifierToken = Match(SyntaxKind.IdentifierToken);
+		return new NameExpressionSyntax(identifierToken);
+	}
+
 	private LiteralExpressionSyntax ParseNumberExpression()
 	{
 		var token = Match(SyntaxKind.LiteralToken);
@@ -139,6 +144,8 @@ internal sealed class Parser
 	private LiteralExpressionSyntax ParseBooleanExpression()
 	{
 		var value = Current.Kind == SyntaxKind.TrueKeyword;
-		return new LiteralExpressionSyntax(NextToken(), value);
+		var keywordToken = value ? Match(SyntaxKind.TrueKeyword) 
+								 : Match(SyntaxKind.FalseKeyword);
+		return new LiteralExpressionSyntax(keywordToken, value);
 	}
 }
