@@ -4,6 +4,26 @@ namespace LealLang.Tests.Analyzer.Syntax;
 
 public class LexerTests
 {
+	[Fact]
+	public void Lexer_TokensTest() 
+	{
+		var tokensAndKeywords = Enum.GetValues<SyntaxKind>()
+						 .Where(k => k.ToString().EndsWith("Token") || k.ToString().EndsWith("Keyword"));
+						 
+		var alreadyTestedTokens = LexerData.Tokens().Concat(LexerData.Separators).Select(t => t.kind);
+		
+		var untestedTokens = new SortedSet<SyntaxKind>(tokensAndKeywords);
+		untestedTokens.ExceptWith(alreadyTestedTokens);
+		untestedTokens.Remove(SyntaxKind.BadToken);
+		untestedTokens.Remove(SyntaxKind.EndOfFileToken);
+		
+		// TODO: Remove this two lines
+		untestedTokens.Remove(SyntaxKind.PipeToken);
+		untestedTokens.Remove(SyntaxKind.AmpersandToken);
+		
+		Assert.Empty(untestedTokens);
+	}
+	
 	[Theory]
 	[MemberData(nameof(GetTokensData))]
 	public void Lexer_TokenizeOneToken_ReturnsExpectedTokens(string text, SyntaxKind expectedKind, string expectedText)
@@ -49,7 +69,7 @@ public class LexerTests
 	{
 		var data = new TheoryData<string, SyntaxKind, string>();
 
-		foreach (var (kind, text) in LexerData.Tokens.Concat(LexerData.Separators))
+		foreach (var (kind, text) in LexerData.Tokens().Concat(LexerData.Separators))
 			data.Add(text, kind, text);
 
 		return data;
@@ -86,6 +106,10 @@ public class LexerTests
 			(SyntaxKind.NotToken, SyntaxKind.EqualsEqualsToken),
 			(SyntaxKind.EqualsToken, SyntaxKind.EqualsToken),
 			(SyntaxKind.EqualsToken, SyntaxKind.EqualsEqualsToken),
+			(SyntaxKind.GreaterThanToken, SyntaxKind.EqualsToken),
+			(SyntaxKind.GreaterThanToken, SyntaxKind.EqualsEqualsToken),
+			(SyntaxKind.LessThanToken, SyntaxKind.EqualsToken),
+			(SyntaxKind.LessThanToken, SyntaxKind.EqualsEqualsToken),
 			(SyntaxKind.PipeToken, SyntaxKind.PipeToken),
 			(SyntaxKind.PipeToken, SyntaxKind.PipePipeToken),
 			(SyntaxKind.AmpersandToken, SyntaxKind.AmpersandToken),
@@ -110,16 +134,16 @@ public class LexerTests
 
 	private static IEnumerable<(SyntaxKind kind1, string text1, SyntaxKind kind2, string text2)> GetTokenPairs()
 	{
-		return from t1 in LexerData.Tokens
-			   from t2 in LexerData.Tokens
+		return from t1 in LexerData.Tokens()
+			   from t2 in LexerData.Tokens()
 			   where !RequireSeparator(t1.kind, t2.kind)
 			   select (t1.kind, t1.text, t2.kind, t2.text);
 	}
 
 	private static IEnumerable<(SyntaxKind kind1, string text1, SyntaxKind separatorKind, string separatorText, SyntaxKind kind2, string text2)> GetTokenPairsWithSeparators()
 	{
-		return from t1 in LexerData.Tokens
-			   from t2 in LexerData.Tokens
+		return from t1 in LexerData.Tokens()
+			   from t2 in LexerData.Tokens()
 			   from separators in LexerData.Separators
 			   where RequireSeparator(t1.kind, t2.kind)
 			   select (t1.kind, t1.text, separators.kind, separators.text, t2.kind, t2.text);
