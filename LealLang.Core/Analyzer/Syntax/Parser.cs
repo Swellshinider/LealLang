@@ -13,6 +13,7 @@ internal sealed class Parser
 
 	public Parser(string text)
 	{
+		var tokens = new List<SyntaxToken>();
 		var lexer = new Lexer(text);
 		SyntaxToken token;
 
@@ -22,10 +23,11 @@ internal sealed class Parser
 
 			if (token.Kind != SyntaxKind.WhitespaceToken &&
 				token.Kind != SyntaxKind.BadToken)
-				_tokens.Add(token);
+				tokens.Add(token);
 
 		} while (token.Kind != SyntaxKind.EndOfFileToken);
 
+		_tokens = [.. tokens];
 		_diagnostics.AddRange(lexer.Diagnostics);
 	}
 
@@ -145,7 +147,7 @@ internal sealed class Parser
 	private LiteralExpressionSyntax ParseBooleanExpression()
 	{
 		var value = Current.Kind == SyntaxKind.TrueKeyword;
-		var keywordToken = value ? Match(SyntaxKind.TrueKeyword) 
+		var keywordToken = value ? Match(SyntaxKind.TrueKeyword)
 								 : Match(SyntaxKind.FalseKeyword);
 		return new LiteralExpressionSyntax(keywordToken, value);
 	}
