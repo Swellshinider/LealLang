@@ -27,7 +27,7 @@ public sealed class DiagnosticManager : IEnumerable<Diagnostic>
 	internal void ReportBadToken(int start, int position, string text) 
 	{
 		var span = new TextSpan(start, start - position);
-		var message = $"Bad token '{text}'";
+		var message = $"Invalid token '{text}'";
 		Report(DiagnosticType.BadToken, span, message);
 	}
 

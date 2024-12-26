@@ -6,7 +6,11 @@ internal sealed class Lexer
 {
 	private readonly DiagnosticManager _diagnostics = new();
 	private readonly string _text;
+
+	private SyntaxKind _kind;
 	private int _position;
+	private int _start;
+	private object? _value;
 
 	public Lexer(string text)
 	{
@@ -28,75 +32,86 @@ internal sealed class Lexer
 
 	private void Advance(int quantity = 1) => _position += quantity;
 
-	private string GetText(int start) => _text[start.._position];
+	private string GetText(int offset = 0) => _text[_start..(_position + offset)];
 
 	public SyntaxToken Lex()
 	{
-		var start = _position;
-
-		if (Current == '\0')
-			return new(SyntaxKind.EndOfFileToken, start, "\0");
+		_value = null;
+		_start = _position;
 
 		if (char.IsDigit(Current))
+			ReadNumberToken();
+		else if (char.IsWhiteSpace(Current))
+			ReadWhiteSpaceToken();
+		else if (char.IsLetter(Current))
+			ReadIdentifierToken();
+		else
 		{
-			while (char.IsDigit(Current))
-				Advance();
+			_kind = Current switch
+			{
+				'+' => SyntaxKind.PlusToken,
+				'-' => SyntaxKind.MinusToken,
+				'*' => SyntaxKind.StarToken,
+				'/' => SyntaxKind.SlashToken,
+				'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
+				'=' => SyntaxKind.EqualsToken,
+				'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
+				'!' => SyntaxKind.NotToken,
+				'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
+				'<' => SyntaxKind.LessThanToken,
+				'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
+				'>' => SyntaxKind.GreaterThanToken,
+				'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
+				'|' => SyntaxKind.PipeToken,
+				'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
+				'&' => SyntaxKind.AmpersandToken,
+				'(' => SyntaxKind.OpenParenthesisToken,
+				')' => SyntaxKind.CloseParenthesisToken,
+				
+				'\0' => SyntaxKind.EndOfFileToken,
+				_ => BadTokenDetected()
+			};
 
-			var integerText = GetText(start);
-
-			if (!int.TryParse(integerText, out var value))
-				_diagnostics.ReportInvalidType(start, _position, integerText, typeof(int));
-
-			return new(SyntaxKind.LiteralToken, start, integerText, value);
+			Advance(_kind.GetAdvanceQuantity());
 		}
 
-		if (char.IsWhiteSpace(Current))
-		{
-			while (char.IsWhiteSpace(Current))
-				Advance();
+		return new(_kind, _start, _kind == SyntaxKind.EndOfFileToken ? "\0" : GetText(), _value);
+	}
 
-			return new(SyntaxKind.WhitespaceToken, start, GetText(start));
-		}
+	private void ReadNumberToken()
+	{
+		while (char.IsDigit(Current))
+			Advance();
 
-		if (char.IsLetter(Current))
-		{
-			while (char.IsLetterOrDigit(Current))
-				Advance();
+		var integerText = GetText();
 
-			var literalText = GetText(start);
-			var literalKind = literalText.GetKeywordKind();
-			return new(literalKind, start, literalText);
-		}
+		if (!int.TryParse(integerText, out var value))
+			_diagnostics.ReportInvalidType(_start, _position, integerText, typeof(int));
 
-		var kind = Current switch
-		{
-			'+' => SyntaxKind.PlusToken,
-			'-' => SyntaxKind.MinusToken,
-			'*' => SyntaxKind.StarToken,
-			'/' => SyntaxKind.SlashToken,
-			'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
-			'=' => SyntaxKind.EqualsToken,
-			'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
-			'!' => SyntaxKind.NotToken,
-			'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
-			'<' => SyntaxKind.LessThanToken,
-			'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
-			'>' => SyntaxKind.GreaterThanToken,
-			'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
-			'|' => SyntaxKind.PipeToken,
-			'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
-			'&' => SyntaxKind.AmpersandToken,
-			'(' => SyntaxKind.OpenParenthesisToken,
-			')' => SyntaxKind.CloseParenthesisToken,
-			_ => SyntaxKind.BadToken
-		};
+		_value = value;
+		_kind = SyntaxKind.LiteralToken;
+	}
 
-		Advance(kind.GetAdvanceQuantity());
-		var text = GetText(start);
+	private void ReadWhiteSpaceToken()
+	{
+		while (char.IsWhiteSpace(Current))
+			Advance();
 
-		if (kind == SyntaxKind.BadToken)
-			_diagnostics.ReportBadToken(start, _position, text);
+		_kind = SyntaxKind.WhitespaceToken;
+	}
 
-		return new(kind, start, text);
+	private void ReadIdentifierToken()
+	{
+		while (char.IsLetterOrDigit(Current))
+			Advance();
+
+		var identifierText = GetText();
+		_kind = identifierText.GetKeywordKind();
+	}
+
+	private SyntaxKind BadTokenDetected()
+	{
+		_diagnostics.ReportBadToken(_start, _position, GetText(1));
+		return SyntaxKind.BadToken;
 	}
 }
