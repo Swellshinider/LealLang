@@ -54,23 +54,28 @@ public static class Program
 			var compilation = new Compilation(syntaxTree);
 			var result = compilation.Evaluate(variables);
 
-			if (!ValidateAndDisplayErrors(input, [.. result.Diagnostics]))
+			if (!ValidateAndDisplayErrors(syntaxTree.SourceText, [.. result.Diagnostics]))
 				Console.WriteLine(result.Value);
 		}
 	}
 
-	private static bool ValidateAndDisplayErrors(string text, ImmutableArray<Diagnostic> diagnostics)
+	private static bool ValidateAndDisplayErrors(SourceText sourceText, ImmutableArray<Diagnostic> diagnostics)
 	{
 		foreach (var diagnostic in diagnostics)
 		{
+			var lineIndex = sourceText.FindLineIndex(diagnostic.Span.Start);
+			var lineNumber = lineIndex + 1;
+			var character = diagnostic.Span.Start - sourceText.Lines[lineIndex].Start + 1;
+			
 			Console.WriteLine();
 			Console.ForegroundColor = ConsoleColor.DarkRed;
+			Console.Write($"({lineNumber}, {character}): ");
 			Console.WriteLine(diagnostic);
 			Console.ResetColor();
 
-			var part1 = text[..diagnostic.Span.Start];
-			var error = text.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
-			var part2 = text[diagnostic.Span.End..];
+			var part1 = sourceText.Text.Substring(0, diagnostic.Span.Start);
+			var error = sourceText.Text.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
+			var part2 = sourceText.Text.Substring(diagnostic.Span.End);
 
 			Console.Write("    ");
 			Console.Write(part1);

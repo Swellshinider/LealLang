@@ -1,18 +1,19 @@
 using LealLang.Core.Analyzer.Diagnostics;
+using LealLang.Core.Analyzer.Text;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
 internal sealed class Lexer
 {
 	private readonly DiagnosticManager _diagnostics = new();
-	private readonly string _text;
+	private readonly SourceText _text;
 
 	private SyntaxKind _kind;
 	private int _position;
 	private int _start;
 	private object? _value;
 
-	public Lexer(string text)
+	public Lexer(SourceText text)
 	{
 		_text = text;
 		_position = 0;
@@ -32,7 +33,7 @@ internal sealed class Lexer
 
 	private void Advance(int quantity = 1) => _position += quantity;
 
-	private string GetText(int offset = 0) => _start >= _text.Length ? "\0" : _text[_start..(_position + offset)];
+	private string GetText(int offset = 0) => _start >= _text.Length ? "\0" : _text.ToString(_start, _position + offset);
 
 	public SyntaxToken Lex()
 	{

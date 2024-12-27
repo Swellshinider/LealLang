@@ -2,19 +2,21 @@
 using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax.Expressions;
+using LealLang.Core.Analyzer.Text;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
 internal sealed class Parser
 {
 	private readonly DiagnosticManager _diagnostics = new();
-	private readonly ImmutableArray<SyntaxToken> _tokens = [];
+	private readonly ImmutableArray<SyntaxToken> _tokens;
+    private readonly SourceText _sourceText;
 	private int _position = 0;
 
-	public Parser(string text)
+	public Parser(SourceText sourceText)
 	{
 		var tokens = new List<SyntaxToken>();
-		var lexer = new Lexer(text);
+		var lexer = new Lexer(sourceText);
 		SyntaxToken token;
 
 		do
@@ -29,14 +31,15 @@ internal sealed class Parser
 
 		_tokens = [.. tokens];
 		_diagnostics.AddRange(lexer.Diagnostics);
-	}
+        _sourceText = sourceText;
+    }
 
 	public DiagnosticManager Diagnostics => _diagnostics;
 
 	private SyntaxToken Current => Peek(0);
 	private SyntaxToken LookNext => Peek(1);
 
-	private SyntaxToken Peek(int offset)
+    private SyntaxToken Peek(int offset)
 	{
 		var index = _position + offset;
 		return index >= _tokens.Length ? _tokens[^1] : _tokens[index];
@@ -62,7 +65,7 @@ internal sealed class Parser
 	{
 		var expression = ParseExpression();
 		var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
-		return new SyntaxTree(Diagnostics, expression, endOfFileToken);
+		return new SyntaxTree(_sourceText, Diagnostics, expression, endOfFileToken);
 	}
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
