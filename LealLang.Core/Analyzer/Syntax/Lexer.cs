@@ -9,116 +9,150 @@ internal sealed class Lexer
 	private readonly SourceText _text;
 
 	private SyntaxKind _kind;
-	private int _position;
 	private int _start;
+	private int _position;
 	private object? _value;
 
 	public Lexer(SourceText text)
 	{
 		_text = text;
-		_position = 0;
 	}
 
-	internal DiagnosticManager Diagnostics => _diagnostics;
+	public DiagnosticManager Diagnostics => _diagnostics;
 
 	private char Current => Peek(0);
 
-	private char LookNext => Peek(1);
+	private char Lookahead => Peek(1);
 
 	private char Peek(int offset)
 	{
 		var index = _position + offset;
-		return index >= _text.Length ? '\0' : _text[index];
+
+		if (index >= _text.Length)
+			return '\0';
+
+		return _text[index];
 	}
-
-	private void Advance(int quantity = 1) => _position += quantity;
-
-	private string GetText(int offset = 0) => _start >= _text.Length ? "\0" : _text.ToString(_start, _position + offset);
 
 	public SyntaxToken Lex()
 	{
-		_value = null;
 		_start = _position;
+		_kind = SyntaxKind.BadToken;
+		_value = null;
 
-		_kind = Current switch
+		switch (Current)
 		{
-			'+' => SyntaxKind.PlusToken,
-			'-' => SyntaxKind.MinusToken,
-			'*' => SyntaxKind.StarToken,
-			'/' => SyntaxKind.SlashToken,
-			'=' when LookNext == '=' => SyntaxKind.EqualsEqualsToken,
-			'=' => SyntaxKind.EqualsToken,
-			'!' when LookNext == '=' => SyntaxKind.NotEqualsToken,
-			'!' => SyntaxKind.NotToken,
-			'<' when LookNext == '=' => SyntaxKind.LessThanOrEqualToken,
-			'<' => SyntaxKind.LessThanToken,
-			'>' when LookNext == '=' => SyntaxKind.GreaterThanOrEqualToken,
-			'>' => SyntaxKind.GreaterThanToken,
-			'|' when LookNext == '|' => SyntaxKind.PipePipeToken,
-			'|' => SyntaxKind.PipeToken,
-			'&' when LookNext == '&' => SyntaxKind.AmpersandAmpersandToken,
-			'&' => SyntaxKind.AmpersandToken,
-			'(' => SyntaxKind.OpenParenthesisToken,
-			')' => SyntaxKind.CloseParenthesisToken,
-			'0' or
-			'1' or
-			'2' or
-			'3' or
-			'4' or
-			'5' or
-			'6' or
-			'7' or
-			'8' or
-			'9' => ReadLiteralNumbers(),
+			case '\0': _kind = SyntaxKind.EndOfFileToken; break;
+			case '+': HandleSingleCharacterToken(SyntaxKind.PlusToken); break;
+			case '-': HandleSingleCharacterToken(SyntaxKind.MinusToken); break;
+			case '*': HandleSingleCharacterToken(SyntaxKind.StarToken); break;
+			case '/': HandleSingleCharacterToken(SyntaxKind.SlashToken); break;
+			case '(': HandleSingleCharacterToken(SyntaxKind.OpenParenthesisToken); break;
+			case ')': HandleSingleCharacterToken(SyntaxKind.CloseParenthesisToken); break;
+			case '&': HandleDoubleCharacterToken('&', SyntaxKind.AmpersandAmpersandToken); break;
+			case '|': HandleDoubleCharacterToken('|', SyntaxKind.PipePipeToken); break;
+			case '=': HandleCharacterPair('=', SyntaxKind.EqualsToken, SyntaxKind.EqualsEqualsToken); break;
+			case '>': HandleCharacterPair('=', SyntaxKind.GreaterThanToken, SyntaxKind.GreaterThanOrEqualToken); break;
+			case '<': HandleCharacterPair('=', SyntaxKind.LessThanToken, SyntaxKind.LessThanOrEqualToken); break;
+			case '!': HandleCharacterPair('=', SyntaxKind.NotToken, SyntaxKind.NotEqualsToken); break;
+			case '0':
+			case '1':
+			case '2':
+			case '3':
+			case '4':
+			case '5':
+			case '6':
+			case '7':
+			case '8':
+			case '9': ReadNumberToken(); break;
+			case ' ': case '\t': case '\n': case '\r': ReadWhiteSpace(); break;
+			default: HandleDefaultCase(); break;
+		}
 
-			' ' or
-			'\t' or
-			'\n' or
-			'\r' => ReadWhitespaces(),
+		var length = _position - _start;
+		var text = _kind.GetText();
+		text ??= _text.ToString(_start, length);
 
-			'\0' => SyntaxKind.EndOfFileToken,
-			_ => ReadOtherCharacters()
-		};
-
-		Advance(_kind.GetAdvanceQuantity());
-		return new(_kind, _start, GetText(), _value);
+		return new SyntaxToken(_kind, _start, text, _value);
 	}
 
-	private SyntaxKind ReadLiteralNumbers()
+	private void HandleSingleCharacterToken(SyntaxKind kind)
 	{
-		while (char.IsDigit(Current))
-			Advance();
-
-		if (!int.TryParse(GetText(), out var value))
-			_diagnostics.ReportInvalidType(_start, _position, GetText(), typeof(int));
-
-		_value = value;
-		return SyntaxKind.LiteralToken;
+		_kind = kind;
+		_position++;
 	}
 
-	private SyntaxKind ReadWhitespaces()
+	private void HandleDoubleCharacterToken(char expected, SyntaxKind kind)
 	{
-		while (char.IsWhiteSpace(Current))
-			Advance();
-
-		return SyntaxKind.WhitespaceToken;
+		if (Lookahead == expected)
+		{
+			_kind = kind;
+			_position += 2;
+		}
 	}
 
-	private SyntaxKind ReadOtherCharacters()
+	private void HandleCharacterPair(char nextExpected, SyntaxKind firstKind, SyntaxKind secondKind)
+	{
+		_position++;
+		if (Current == nextExpected)
+		{
+			_kind = secondKind;
+			_position++;
+		}
+		else
+		{
+			_kind = firstKind;
+		}
+	}
+
+	private void HandleDefaultCase()
 	{
 		if (char.IsLetter(Current))
 		{
-			while (char.IsLetterOrDigit(Current))
-				Advance();
-
-			var identifierText = GetText();
-			return identifierText.GetKeywordKind();
+			ReadIdentifierOrKeyword();
+			return;
 		}
-		
-		if (char.IsWhiteSpace(Current))
-			return ReadWhitespaces();
 
-		_diagnostics.ReportBadToken(_start, _position, GetText(1));
-		return SyntaxKind.BadToken;
+		if (char.IsWhiteSpace(Current))
+		{
+			ReadWhiteSpace();
+			return;
+		}
+
+		_kind = SyntaxKind.BadToken;
+		_diagnostics.ReportBadToken(_start, _position++, Current.ToString());
+	}
+
+	private void ReadNumberToken()
+	{
+		while (char.IsDigit(Current))
+			_position++;
+
+		var length = _position - _start;
+		var text = _text.ToString(_start, length);
+
+		if (!int.TryParse(text, out var value))
+			_diagnostics.ReportInvalidType(_start, _position, text, typeof(int));
+
+		_value = value;
+		_kind = SyntaxKind.LiteralToken;
+	}
+
+	private void ReadWhiteSpace()
+	{
+		while (char.IsWhiteSpace(Current))
+			_position++;
+
+		_kind = SyntaxKind.WhitespaceToken;
+	}
+
+	private void ReadIdentifierOrKeyword()
+	{
+		while (char.IsLetter(Current))
+			_position++;
+
+		var length = _position - _start;
+		var text = _text.ToString(_start, length);
+		_kind = text.GetKeywordKind();
 	}
 }

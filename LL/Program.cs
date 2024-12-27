@@ -63,28 +63,31 @@ public static class Program
 	{
 		foreach (var diagnostic in diagnostics)
 		{
-			var lineIndex = sourceText.FindLineIndex(diagnostic.Span.Start);
+			var lineIndex = sourceText.GetLineIndex(diagnostic.Span.Start);
+			var line = sourceText.Lines[lineIndex];
 			var lineNumber = lineIndex + 1;
-			var character = diagnostic.Span.Start - sourceText.Lines[lineIndex].Start + 1;
-			
+			var character = diagnostic.Span.Start - line.Start;
+
 			Console.WriteLine();
 			Console.ForegroundColor = ConsoleColor.DarkRed;
 			Console.Write($"({lineNumber}, {character}): ");
 			Console.WriteLine(diagnostic);
 			Console.ResetColor();
 
-			var part1 = sourceText.Text.Substring(0, diagnostic.Span.Start);
-			var error = sourceText.Text.Substring(diagnostic.Span.Start, diagnostic.Span.Length);
-			var part2 = sourceText.Text.Substring(diagnostic.Span.End);
+			var prefixSpan = TextSpan.FromBounds(line.Start, diagnostic.Span.Start);
+			var suffixSpan = TextSpan.FromBounds(diagnostic.Span.End, line.End);
+			var prefix = sourceText.ToString(prefixSpan);
+			var error = sourceText.ToString(diagnostic.Span);
+			var suffix = sourceText.ToString(suffixSpan);
 
 			Console.Write("    ");
-			Console.Write(part1);
+			Console.Write(prefix);
 
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write(error);
 			Console.ResetColor();
 
-			Console.WriteLine(part2);
+			Console.WriteLine(suffix);
 		}
 
 		return !diagnostics.IsEmpty;
