@@ -23,13 +23,15 @@ public static class Program
 			Console.Write(content.Length > 0 ? ". " : "> ");
 			var input = Console.ReadLine() ?? string.Empty;
 			Console.ResetColor();
-
+			
 			var isBlank = string.IsNullOrEmpty(input);
 
-			if (content.Length > 0)
+			if (content.Length <= 0)
 			{
-				if (isBlank)
+				if (input == "#exit")
+				{
 					break;
+				}
 				else if (input == "#cls")
 				{
 					Console.Clear();
@@ -43,9 +45,8 @@ public static class Program
 				}
 				else if (input == "#showVar")
 				{
-					Console.WriteLine();
 					foreach (var v in variables)
-						Console.WriteLine($"{v.Key}->{v.Value}");
+						Console.WriteLine($"[<{v.Key.Type}>]{v.Key.Name}, {v.Value}");
 					continue;
 				}
 			}
@@ -64,9 +65,13 @@ public static class Program
 			var result = compilation.Evaluate(variables);
 
 			if (!ValidateAndDisplayErrors(syntaxTree.SourceText, [.. result.Diagnostics]))
+			{
+				Console.ForegroundColor = ConsoleColor.Magenta;
 				Console.WriteLine(result.Value);
-			
-			content.Clear();
+				Console.ResetColor();
+			}
+
+			content = new StringBuilder();
 		}
 	}
 
@@ -81,8 +86,7 @@ public static class Program
 
 			Console.WriteLine();
 			Console.ForegroundColor = ConsoleColor.DarkRed;
-			Console.Write($"({lineNumber}, {character}): ");
-			Console.WriteLine(diagnostic);
+			Console.WriteLine($"({lineNumber}, {character}): {diagnostic}");
 			Console.ResetColor();
 
 			var prefixSpan = TextSpan.FromBounds(line.Start, diagnostic.Span.Start);
@@ -91,8 +95,7 @@ public static class Program
 			var error = sourceText.ToString(diagnostic.Span);
 			var suffix = sourceText.ToString(suffixSpan);
 
-			Console.Write("    ");
-			Console.Write(prefix);
+			Console.Write($"    {prefix}");
 
 			Console.ForegroundColor = ConsoleColor.Red;
 			Console.Write(error);

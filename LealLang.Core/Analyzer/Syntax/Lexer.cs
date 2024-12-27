@@ -120,7 +120,8 @@ internal sealed class Lexer
 		}
 
 		_kind = SyntaxKind.BadToken;
-		_diagnostics.ReportBadToken(_start, _position++, Current.ToString());
+		_position++;
+		_diagnostics.ReportBadToken(_start, Current);
 	}
 
 	private void ReadNumberToken()

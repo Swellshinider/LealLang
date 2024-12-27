@@ -20,38 +20,38 @@ public sealed class DiagnosticManager : IEnumerable<Diagnostic>
 	internal void ReportInvalidType(int start, int position, string text, Type type)
 	{
 		var span = new TextSpan(start, start - position);
-		var message = $"Cannot implicitly convert '{text}' to type <{type}>";
+		var message = $"Cannot implicitly convert '{text}' to type <{type}>.";
 		Report(DiagnosticType.TypeError, span, message);
 	}
 	
-	internal void ReportBadToken(int start, int position, string text) 
+	internal void ReportBadToken(int start, char character) 
 	{
-		var span = new TextSpan(start, start - position);
-		var message = $"Invalid token '{text}'";
+		var span = new TextSpan(start, 1);
+		var message = $"Invalid token '{character}'.";
 		Report(DiagnosticType.BadToken, span, message);
 	}
 
 	internal void ReportTokenDidNotMatched(TextSpan span, SyntaxKind kind, SyntaxKind expectedKind)
 	{
-		var message = $"Unexpected token <{kind}>, expected <{expectedKind}>";
+		var message = $"Unexpected token <{kind}>, expected <{expectedKind}>.";
 		Report(DiagnosticType.SyntaxError, span, message);
 	}
 
 	internal void ReportInvalidUnaryOperator(TextSpan span, string? operatorText, Type targetType)
 	{
-		var message = $"Unary operator '{operatorText}' is not defined for type <{targetType}>";
+		var message = $"Unary operator '{operatorText}' is not defined for type <{targetType}>.";
 		Report(DiagnosticType.InvalidOperation, span, message);
 	}
 
 	internal void ReportInvalidBinaryOperator(TextSpan span, string? operatorText, Type leftType, Type rightType)
 	{
-		var message = $"Binary operator '{operatorText}' is not defined for types <{leftType}> and <{rightType}>";
+		var message = $"Binary operator '{operatorText}' is not defined for types <{leftType}> and <{rightType}>.";
 		Report(DiagnosticType.InvalidOperation, span, message);
 	}
 
 	internal void ReportUndefinedName(TextSpan span, string name)
 	{
-		var message = $"Variable '{name}' does not exist in the current context";
+		var message = $"Variable '{name}' does not exist in the current context.";
 		Report(DiagnosticType.NameDoesNotExist, span, message);
 	}
 }
