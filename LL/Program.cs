@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Immutable;
+using System.Text;
 using LealLang.Core.Analyzer;
 using LealLang.Core.Analyzer.Binding;
 using LealLang.Core.Analyzer.Diagnostics;
@@ -13,40 +14,48 @@ public static class Program
 	public static void Main(string[] args)
 	{
 		var showTree = false;
+		var content = new StringBuilder();
 		var variables = new Dictionary<VariableSymbol, object?>();
 
 		while (true)
 		{
 			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.Write("> ");
+			Console.Write(content.Length > 0 ? ". " : "> ");
 			var input = Console.ReadLine() ?? string.Empty;
 			Console.ResetColor();
 
-			if (input == "#exit")
-				break;
+			var isBlank = string.IsNullOrEmpty(input);
 
-			if (input == "#cls")
+			if (content.Length > 0)
 			{
-				Console.Clear();
-				continue;
+				if (isBlank)
+					break;
+				else if (input == "#cls")
+				{
+					Console.Clear();
+					continue;
+				}
+				else if (input == "#showTree")
+				{
+					showTree = !showTree;
+					Console.WriteLine($"{(showTree ? "showing" : "hiding")} parsed trees");
+					continue;
+				}
+				else if (input == "#showVar")
+				{
+					Console.WriteLine();
+					foreach (var v in variables)
+						Console.WriteLine($"{v.Key}->{v.Value}");
+					continue;
+				}
 			}
 
-			if (input == "#showTree")
-			{
-				showTree = !showTree;
-				Console.WriteLine($"{(showTree ? "showing" : "hiding")} parsed trees");
-				continue;
-			}
+			content.AppendLine(input);
+			var text = content.ToString();
+			var syntaxTree = SyntaxTree.Parse(text);
 
-			if (input == "#showVar")
-			{
-				Console.WriteLine();
-				foreach (var v in variables)
-					Console.WriteLine($"{v.Key}->{v.Value}");
+			if (!isBlank && syntaxTree.Diagnostics.Any())
 				continue;
-			}
-
-			var syntaxTree = SyntaxTree.Parse(input);
 
 			if (showTree)
 				syntaxTree.RootExpression.WriteTo(Console.Out);
@@ -56,6 +65,8 @@ public static class Program
 
 			if (!ValidateAndDisplayErrors(syntaxTree.SourceText, [.. result.Diagnostics]))
 				Console.WriteLine(result.Value);
+			
+			content.Clear();
 		}
 	}
 
