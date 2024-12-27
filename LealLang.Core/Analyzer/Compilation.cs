@@ -16,7 +16,7 @@ public sealed class Compilation
 	public EvaluationResult Evaluate(Dictionary<VariableSymbol, object?> variables) 
 	{
 		if (SyntaxTree.Diagnostics.Any()) 
-			return new EvaluationResult(SyntaxTree.Diagnostics, null);
+			return new([.. SyntaxTree.Diagnostics], null);
 			
 		var binder = new Binder(variables);
 		var boundExpression = binder.BindExpression(SyntaxTree.RootExpression);
@@ -24,7 +24,7 @@ public sealed class Compilation
 		var diagnostics = SyntaxTree.Diagnostics.Concat(binder.Diagnostics);
 		
 		if (diagnostics.Any()) 
-			return new EvaluationResult(diagnostics, null);
+			return new([.. diagnostics], null);
 		
 		var evaluator = new Evaluator(boundExpression!, variables);
 		var value = evaluator.Evaluate();

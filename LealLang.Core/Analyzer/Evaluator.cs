@@ -15,12 +15,9 @@ internal sealed class Evaluator
 		_variables = variables;
 	}
 
-	public object? Evaluate()
-	{
-		return EvaluateExpression(_expression);
-	}
+	public object Evaluate() => EvaluateExpression(_expression);
 
-	private object? EvaluateExpression(BoundExpression expression) => expression.Kind switch
+	private object EvaluateExpression(BoundExpression expression) => expression.Kind switch
 	{
 		BoundNodeKind.LiteralExpression => EvaluateLiteralExpression((BoundLiteralExpression)expression),
 		BoundNodeKind.BinaryExpression => EvaluateBinaryExpression((BoundBinaryExpression)expression),
@@ -30,7 +27,7 @@ internal sealed class Evaluator
 		_ => throw new($"Unexpected expression to evaluate '{expression.Kind}'")
 	};
 
-	private static object? EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
+	private static object EvaluateLiteralExpression(BoundLiteralExpression literalExpression)
 		=> literalExpression.Value;
 
 	private object EvaluateBinaryExpression(BoundBinaryExpression binaryExpression)
@@ -69,13 +66,13 @@ internal sealed class Evaluator
 		};
 	}
 
-	private object? EvaluateAssignmentExpression(BoundAssignmentExpression assignmentExpression)
+	private object EvaluateAssignmentExpression(BoundAssignmentExpression assignmentExpression)
 	{
 		var value = EvaluateExpression(assignmentExpression.Expression);
 		_variables[assignmentExpression.VariableSymbol] = value;
 		return value;
 	}
 
-	private object? EvaluateVariableExpression(BoundVariableExpression variableExpression)
-		=> _variables[variableExpression.VariableSymbol];
+	private object EvaluateVariableExpression(BoundVariableExpression variableExpression)
+		=> _variables[variableExpression.VariableSymbol]!;
 }

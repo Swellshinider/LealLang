@@ -1,18 +1,22 @@
 
+using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax.Expressions;
+using LealLang.Core.Analyzer.Text;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
 internal sealed class Parser
 {
 	private readonly DiagnosticManager _diagnostics = new();
-	private readonly List<SyntaxToken> _tokens = [];
+	private readonly ImmutableArray<SyntaxToken> _tokens;
+    private readonly SourceText _sourceText;
 	private int _position = 0;
 
-	public Parser(string text)
+	public Parser(SourceText sourceText)
 	{
-		var lexer = new Lexer(text);
+		var tokens = new List<SyntaxToken>();
+		var lexer = new Lexer(sourceText);
 		SyntaxToken token;
 
 		do
@@ -21,22 +25,24 @@ internal sealed class Parser
 
 			if (token.Kind != SyntaxKind.WhitespaceToken &&
 				token.Kind != SyntaxKind.BadToken)
-				_tokens.Add(token);
+				tokens.Add(token);
 
 		} while (token.Kind != SyntaxKind.EndOfFileToken);
 
+		_tokens = [.. tokens];
 		_diagnostics.AddRange(lexer.Diagnostics);
-	}
+        _sourceText = sourceText;
+    }
 
 	public DiagnosticManager Diagnostics => _diagnostics;
 
 	private SyntaxToken Current => Peek(0);
 	private SyntaxToken LookNext => Peek(1);
 
-	private SyntaxToken Peek(int offset)
+    private SyntaxToken Peek(int offset)
 	{
 		var index = _position + offset;
-		return index >= _tokens.Count ? _tokens[^1] : _tokens[index];
+		return index >= _tokens.Length ? _tokens[^1] : _tokens[index];
 	}
 
 	private SyntaxToken NextToken()
@@ -59,22 +65,13 @@ internal sealed class Parser
 	{
 		var expression = ParseExpression();
 		var endOfFileToken = Match(SyntaxKind.EndOfFileToken);
-		return new SyntaxTree(Diagnostics, expression, endOfFileToken);
+		return new SyntaxTree(_sourceText, Diagnostics, expression, endOfFileToken);
 	}
 
 	private ExpressionSyntax ParseExpression() => Current.Kind switch
 	{
 		SyntaxKind.LiteralExpression => ParsePrimaryExpression(),
 		_ => ParseAssignmentExpression(),
-	};
-
-	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
-	{
-		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
-		SyntaxKind.TrueKeyword or
-		SyntaxKind.FalseKeyword => ParseBooleanExpression(),
-		SyntaxKind.IdentifierToken => new NameExpressionSyntax(NextToken()),
-		_ => ParseNumberExpression()
 	};
 
 	private ExpressionSyntax ParseAssignmentExpression()
@@ -89,15 +86,6 @@ internal sealed class Parser
 		}
 
 		return ParseBinaryExpression();
-	}
-
-	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
-	{
-		var openParenthesisToken = Match(SyntaxKind.OpenParenthesisToken);
-		var expression = ParseExpression();
-		var closeParenthesisToken = Match(SyntaxKind.CloseParenthesisToken);
-
-		return new ParenthesizedExpressionSyntax(openParenthesisToken, expression, closeParenthesisToken);
 	}
 
 	private ExpressionSyntax ParseBinaryExpression(int parentPrecedence = 0)
@@ -130,6 +118,29 @@ internal sealed class Parser
 		return left;
 	}
 
+	private ExpressionSyntax ParsePrimaryExpression() => Current.Kind switch
+	{
+		SyntaxKind.OpenParenthesisToken => ParseParenthesisExpression(),
+		SyntaxKind.IdentifierToken => ParseNameExpression(),
+		SyntaxKind.TrueKeyword or SyntaxKind.FalseKeyword => ParseBooleanExpression(),
+		_ => ParseNumberExpression()
+	};
+
+	private ParenthesizedExpressionSyntax ParseParenthesisExpression()
+	{
+		var openParenthesisToken = Match(SyntaxKind.OpenParenthesisToken);
+		var expression = ParseExpression();
+		var closeParenthesisToken = Match(SyntaxKind.CloseParenthesisToken);
+
+		return new ParenthesizedExpressionSyntax(openParenthesisToken, expression, closeParenthesisToken);
+	}
+
+	private NameExpressionSyntax ParseNameExpression()
+	{
+		var identifierToken = Match(SyntaxKind.IdentifierToken);
+		return new NameExpressionSyntax(identifierToken);
+	}
+
 	private LiteralExpressionSyntax ParseNumberExpression()
 	{
 		var token = Match(SyntaxKind.LiteralToken);
@@ -139,6 +150,8 @@ internal sealed class Parser
 	private LiteralExpressionSyntax ParseBooleanExpression()
 	{
 		var value = Current.Kind == SyntaxKind.TrueKeyword;
-		return new LiteralExpressionSyntax(NextToken(), value);
+		var keywordToken = value ? Match(SyntaxKind.TrueKeyword)
+								 : Match(SyntaxKind.FalseKeyword);
+		return new LiteralExpressionSyntax(keywordToken, value);
 	}
 }

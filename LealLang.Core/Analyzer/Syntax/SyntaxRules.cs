@@ -40,7 +40,14 @@ public static class SyntaxRules
 		SyntaxKind.GreaterThanOrEqualToken or
 		SyntaxKind.LessThanOrEqualToken or
 		SyntaxKind.PipePipeToken => 2,
-
+		
+		SyntaxKind.WhitespaceToken or 
+		SyntaxKind.TrueKeyword or 
+		SyntaxKind.FalseKeyword or
+		SyntaxKind.IdentifierToken or
+		SyntaxKind.EndOfFileToken or
+		SyntaxKind.LiteralToken => 0,
+		
 		_ => 1
 	};
 
