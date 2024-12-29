@@ -20,7 +20,7 @@ public static class Program
 		while (true)
 		{
 			Console.ForegroundColor = ConsoleColor.Cyan;
-			Console.Write(content.Length > 0 ? ". " : "> ");
+			Console.Write(content.Length > 0 ? "⁞ " : "» ");
 			var input = Console.ReadLine() ?? string.Empty;
 			Console.ResetColor();
 			
