@@ -1,4 +1,3 @@
-using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Binding.Expressions;
 using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
@@ -12,21 +11,48 @@ internal sealed class Binder
 	private readonly DiagnosticManager _diagnostics = new();
 	private readonly BoundScope _scope;
 
-	public Binder(BoundScope? scope)
+	public Binder(BoundScope? scope = null)
 	{
 		_scope = new BoundScope(scope);
 	}
 
 	public DiagnosticManager Diagnostics => _diagnostics;
 
-	public static BoundGlobalScope BindGlobalScope(CompilationUnitSyntax compilationUnit) 
+	public static BoundGlobalScope BindGlobalScope(BoundGlobalScope? previous, CompilationUnitSyntax compilationUnit) 
 	{
-		var binder = new Binder(null);
+		var parentScope = CreateParentScopes(previous);
+		var binder = new Binder(parentScope);
 		var expression = binder.BindExpression(compilationUnit.Expression);
 		var diagnostics = binder._diagnostics;
 		var variables = binder._scope?.DeclaredVariables ?? [];
 		
-		return new(null, diagnostics, variables, expression);
+		return new(previous, diagnostics, variables, expression);
+	}
+
+	public static BoundScope? CreateParentScopes(BoundGlobalScope? previous) 
+	{
+		var stack = new Stack<BoundGlobalScope>();
+		
+		while (previous != null) 
+		{
+			stack.Push(previous);
+			previous = previous.PreviousScope;
+		}
+		
+		BoundScope? parent = null;
+		
+		while (stack.Count > 0) 
+		{
+			previous = stack.Pop();		
+			var scope = new BoundScope(parent);
+			
+			foreach (var variable in previous.Variables)
+				scope.TryDeclare(variable);
+			
+			parent = scope;
+		}
+			
+		return parent;
 	}
 
 	public BoundExpression BindExpression(ExpressionSyntax syntax) => syntax.Kind switch

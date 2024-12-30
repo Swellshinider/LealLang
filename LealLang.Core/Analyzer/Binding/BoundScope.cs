@@ -18,8 +18,8 @@ internal sealed class BoundScope
 	
 	public bool TryLookup(string name, out VariableSymbol variableSymbol) 
 	{
-		if (!_variables.TryGetValue(name, out variableSymbol))
-			return false;
+		if (_variables.TryGetValue(name, out variableSymbol))
+			return true;
 			
 		if (Parent == null)
 			return false;

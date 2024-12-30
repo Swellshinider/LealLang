@@ -1,5 +1,6 @@
 ﻿
 using System.Collections.Immutable;
+using System.Reflection;
 using System.Text;
 using LealLang.Core.Analyzer;
 using LealLang.Core.Analyzer.Binding;
@@ -16,6 +17,7 @@ public static class Program
 		var showTree = false;
 		var content = new StringBuilder();
 		var variables = new Dictionary<VariableSymbol, object?>();
+		Compilation? previousCompilation = null;
 
 		while (true)
 		{
@@ -61,11 +63,14 @@ public static class Program
 			if (showTree)
 				syntaxTree.Root.WriteTo(Console.Out);
 
-			var compilation = new Compilation(syntaxTree);
-			var result = compilation.Evaluate(variables);
+			var actualCompilation = previousCompilation == null 
+				? new Compilation(syntaxTree) 
+				: previousCompilation.ContinueWith(syntaxTree);
+			var result = actualCompilation.Evaluate(variables);
 
 			if (!ValidateAndDisplayErrors(syntaxTree.SourceText, [.. result.Diagnostics]))
 			{
+				previousCompilation = actualCompilation;
 				Console.ForegroundColor = ConsoleColor.Magenta;
 				Console.WriteLine(result.Value);
 				Console.ResetColor();
