@@ -1,31 +1,24 @@
 using LealLang.Core.Analyzer.Diagnostics;
-using LealLang.Core.Analyzer.Syntax.Expressions;
 using LealLang.Core.Analyzer.Text;
 
 namespace LealLang.Core.Analyzer.Syntax;
 
 public sealed class SyntaxTree
 {
-	public SyntaxTree(SourceText sourceText, DiagnosticManager diagnostics, ExpressionSyntax rootExpression, SyntaxToken endOfFileToken)
-	{
-        SourceText = sourceText;
-        Diagnostics = diagnostics;
-		RootExpression = rootExpression;
-		EndOfFileToken = endOfFileToken;
-	}
-
-    public SourceText SourceText { get; }
-    public DiagnosticManager Diagnostics { get; }
-	public ExpressionSyntax RootExpression { get; }
-	public SyntaxToken EndOfFileToken { get; }
-	
-	public static SyntaxTree Parse(string text) => Parse(SourceText.From(text));
-	
-	public static SyntaxTree Parse(SourceText sourceText) 
+	private SyntaxTree(SourceText sourceText)
 	{
 		var parser = new Parser(sourceText);
-		return parser.Parse();
+		Root = parser.ParseCompilationUnit();
+		
+		SourceText = sourceText;
+		Diagnostics = parser.Diagnostics;
 	}
+
+	public SourceText SourceText { get; }
+	public DiagnosticManager Diagnostics { get; }
+	public CompilationUnitSyntax Root { get; }
+	
+	public static SyntaxTree Parse(string text) => new(SourceText.From(text));
 	
 	public static IEnumerable<SyntaxToken> ParseTokens(string text) => ParseTokens(SourceText.From(text));
 	

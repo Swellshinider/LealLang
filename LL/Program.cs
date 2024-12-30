@@ -59,7 +59,7 @@ public static class Program
 				continue;
 
 			if (showTree)
-				syntaxTree.RootExpression.WriteTo(Console.Out);
+				syntaxTree.Root.WriteTo(Console.Out);
 
 			var compilation = new Compilation(syntaxTree);
 			var result = compilation.Evaluate(variables);

@@ -19,7 +19,7 @@ public sealed class Compilation
 			return new([.. SyntaxTree.Diagnostics], null);
 			
 		var binder = new Binder(variables);
-		var boundExpression = binder.BindExpression(SyntaxTree.RootExpression);
+		var boundExpression = binder.BindExpression(SyntaxTree.Root.Expression);
 		
 		var diagnostics = SyntaxTree.Diagnostics.Concat(binder.Diagnostics);
 		

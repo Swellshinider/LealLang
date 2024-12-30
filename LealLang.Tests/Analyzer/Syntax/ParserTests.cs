@@ -13,7 +13,7 @@ public class ParserTests
 		var op1Text = operator1.GetText() ?? "";
 		var op2Text = operator2.GetText() ?? "";
 		var text = $"a {op1Text} b {op2Text} c";
-		var expression = SyntaxTree.Parse(text).RootExpression;
+		var expression = SyntaxTree.Parse(text).Root.Expression;
 
 		using var e = new AssertingExpression(expression);
 
@@ -54,7 +54,7 @@ public class ParserTests
 		var unaryText = unaryOperator.GetText() ?? "";
 		var binaryText = binaryOperator.GetText() ?? "";
 		var text = $"{unaryText} a {binaryText} b";
-		var expression = SyntaxTree.Parse(text).RootExpression;
+		var expression = SyntaxTree.Parse(text).Root.Expression;
 
 		using var e = new AssertingExpression(expression);
 

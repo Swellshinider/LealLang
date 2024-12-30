@@ -16,10 +16,10 @@ public enum SyntaxKind
 	EqualsEqualsToken,
 	NotToken,
 	NotEqualsToken,
-    LessThanOrEqualToken,
-    LessThanToken,
-    GreaterThanOrEqualToken,
-    GreaterThanToken,
+	LessThanOrEqualToken,
+	LessThanToken,
+	GreaterThanOrEqualToken,
+	GreaterThanToken,
 	PipeToken,
 	PipePipeToken,
 	AmpersandToken,
@@ -38,7 +38,9 @@ public enum SyntaxKind
 	BinaryExpression,
 	UnaryExpression,
 	ParenthesizedExpression,
-    NameExpression,
-    AssignmentExpression,
-    #endregion
+	NameExpression,
+	AssignmentExpression,
+	#endregion
+
+	CompilationUnit,
 }
