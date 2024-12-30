@@ -18,15 +18,13 @@ public sealed class Compilation
 		if (SyntaxTree.Diagnostics.Any()) 
 			return new([.. SyntaxTree.Diagnostics], null);
 			
-		var binder = new Binder(variables);
-		var boundExpression = binder.BindExpression(SyntaxTree.Root.Expression);
-		
-		var diagnostics = SyntaxTree.Diagnostics.Concat(binder.Diagnostics);
+		var boundGlobalScope = Binder.BindGlobalScope(SyntaxTree.Root);
+		var diagnostics = SyntaxTree.Diagnostics.Concat(boundGlobalScope.Diagnostics);
 		
 		if (diagnostics.Any()) 
 			return new([.. diagnostics], null);
 		
-		var evaluator = new Evaluator(boundExpression!, variables);
+		var evaluator = new Evaluator(boundGlobalScope.Expression, variables);
 		var value = evaluator.Evaluate();
 		
 		return new([], value);

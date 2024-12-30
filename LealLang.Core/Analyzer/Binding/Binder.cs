@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using LealLang.Core.Analyzer.Binding.Expressions;
 using LealLang.Core.Analyzer.Diagnostics;
 using LealLang.Core.Analyzer.Syntax;
@@ -9,14 +10,24 @@ namespace LealLang.Core.Analyzer.Binding;
 internal sealed class Binder
 {
 	private readonly DiagnosticManager _diagnostics = new();
-	private readonly Dictionary<VariableSymbol, object?> _variables;
+	private readonly BoundScope _scope;
 
-	public Binder(Dictionary<VariableSymbol, object?> variables)
+	public Binder(BoundScope? scope)
 	{
-		_variables = variables;
+		_scope = new BoundScope(scope);
 	}
 
 	public DiagnosticManager Diagnostics => _diagnostics;
+
+	public static BoundGlobalScope BindGlobalScope(CompilationUnitSyntax compilationUnit) 
+	{
+		var binder = new Binder(null);
+		var expression = binder.BindExpression(compilationUnit.Expression);
+		var diagnostics = binder._diagnostics;
+		var variables = binder._scope?.DeclaredVariables ?? [];
+		
+		return new(null, diagnostics, variables, expression);
+	}
 
 	public BoundExpression BindExpression(ExpressionSyntax syntax) => syntax.Kind switch
 	{
@@ -67,9 +78,8 @@ internal sealed class Binder
 	private BoundExpression BindNameExpression(NameExpressionSyntax nameSyntax)
 	{
 		var name = nameSyntax.IdentifierToken.Text ?? "";
-		var variable = _variables.Keys.FirstOrDefault(v => v.Name == name);
 
-		if (variable.Equals(default(VariableSymbol)))
+		if (!_scope.TryLookup(name, out var variable))
 		{
 			_diagnostics.ReportUndefinedName(nameSyntax.IdentifierToken.Span, name);
 			return new BoundLiteralExpression(0);
@@ -82,14 +92,12 @@ internal sealed class Binder
 	{
 		var name = assignmentSyntax.IdentifierToken.Text ?? "";
 		var boundExpression = BindExpression(assignmentSyntax.Expression);
-		
-		var existVariable = _variables.Keys.FirstOrDefault(v => v.Name == name);
-		
-		if (!existVariable.Equals(default(VariableSymbol)))
-			_variables.Remove(existVariable);
-			
 		var variable = new VariableSymbol(name, boundExpression.Type);
-		_variables.Add(variable, null);
+		
+		if(!_scope.TryDeclare(variable))
+		{
+			_diagnostics.ReportVariableAlreadyDeclared(assignmentSyntax.IdentifierToken.Span, name);
+		}
 		
 		return new BoundAssignmentExpression(variable, boundExpression);
 	}

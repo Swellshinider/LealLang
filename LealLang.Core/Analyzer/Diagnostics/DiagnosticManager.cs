@@ -52,6 +52,12 @@ public sealed class DiagnosticManager : IEnumerable<Diagnostic>
 	internal void ReportUndefinedName(TextSpan span, string name)
 	{
 		var message = $"Variable '{name}' does not exist in the current context.";
-		Report(DiagnosticType.NameDoesNotExist, span, message);
+		Report(DiagnosticType.VariableNotExist, span, message);
+	}
+
+	internal void ReportVariableAlreadyDeclared(TextSpan span, string name)
+	{
+		var message = $"A local variable named '{name}' is already defined in this context.";
+		Report(DiagnosticType.VariableAlreadyDeclared, span, message);
 	}
 }
